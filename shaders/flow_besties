@@ -1,0 +1,35 @@
+struct updatingParams {
+    //RGB
+    float r_level       = 0.5f;
+    float r_amplitude   = 0.5f;
+    float r_frequency   = 0.3f;
+    float r_phase       = 0.0f;
+
+    float g_level       = 0.5f;
+    float g_amplitude   = 0.5f;
+    float g_frequency   = 0.5f;
+    float g_phase       = 0.4f;
+
+    float b_level       = 0.5f;
+    float b_amplitude   = 0.5f;
+    float b_frequency   = 0.5f;
+    float b_phase       = 0.7f;
+
+    //trailDecay
+    float td_level     = 0.99f;
+    float td_amplitude = 0.01f;
+    float td_frequency = 0.2f;
+    float td_phase     = 0.0f;
+
+    // speed
+    float speed_level     = 1.0f;
+    float speed_amplitude = 1.0f;
+    float speed_frequency = 2.0f;
+    float speed_phase     = 0.0f;
+
+    // intensity
+    float intensity_level     = 0.15f;
+    float intensity_amplitude = 0.05f;
+    float intensity_frequency = 0.2f;
+    float intensity_phase     = 0.0f;
+};
