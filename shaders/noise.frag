@@ -70,13 +70,16 @@ void main() {
     float amp = 1.0;
 
     for (int i = 0; i < u_octaves; i++) {
-        vec2 offset = vec2(0, -2.0*t);
+        vec2 offset = vec2(-10, -2.0*t);
         n += patternValue(p + offset, t) * amp;
         p += warpUV(p, t) * 0.2; // небольшой warp для движения
         amp *= u_ampFactor;
     }
 
     vec3 color = u_color;
+    color.r += n * 0.5;
+    color.g += n * 0.0;
+    color.b += n * 0.0;
     color += vec3(n*0.5); // применяем ко всем каналам
     fragColor = vec4(color - 0.5, 1.0); // сдвиг цвета для визуализации
 }
