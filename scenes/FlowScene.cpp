@@ -1,13 +1,28 @@
 #include "FlowScene.h"
+
+#include <iostream>
+
 #include "../gl/Shader.h"
 #include "../gl/Quad.h"
 #include <GL/glew.h>
 #include <random>
 
 void FlowScene::onEnter() {
-    flowShader = std::make_unique<Shader>(
+    shaders[FlowVariant::Flow] = std::make_unique<Shader>(
+        std::string(SHADER_DIR) + "fullscreen.vert",
+        std::string(SHADER_DIR) + "flow.frag"
+    );
+    shaders[FlowVariant::Colorful] = std::make_unique<Shader>(
+        std::string(SHADER_DIR) + "fullscreen.vert",
+        std::string(SHADER_DIR) + "flow_colorful.frag"
+    );
+    shaders[FlowVariant::ColorChange] = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
         std::string(SHADER_DIR) + "flow_color_change.frag"
+    );
+    shaders[FlowVariant::Space] = std::make_unique<Shader>(
+        std::string(SHADER_DIR) + "fullscreen.vert",
+        std::string(SHADER_DIR) + "flow_space.frag"
     );
 
     blitShader = std::make_unique<Shader>(
@@ -17,11 +32,11 @@ void FlowScene::onEnter() {
     quad = std::make_unique<Quad>();
     initTrail(1920, 1080);
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dist(0.0f, 1000.0f);
-    params.seed = dist(gen);
+    std::uniform_real_distribution<float> seedDist(0.0f, 1000.0f);
+    params.seed = seedDist(rng);
     params.time = 0.0f;
+
+    currentVariant = FlowVariant::ColorChange;
 }
 
 void FlowScene::initTrail(int width, int height) {
@@ -30,30 +45,14 @@ void FlowScene::initTrail(int width, int height) {
 
     for (int i = 0; i < 2; ++i) {
         glBindTexture(GL_TEXTURE_2D, trailTex[i]);
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGB32F,
-            width,
-            height,
-            0,
-            GL_RGB,
-            GL_FLOAT,
-            nullptr
-        );
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         glBindFramebuffer(GL_FRAMEBUFFER, trailFBO[i]);
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_2D,
-            trailTex[i],
-            0
-        );
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, trailTex[i], 0);
 
-        glClearColor(0,0,0,1);
+        glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
@@ -69,8 +68,7 @@ void FlowScene::update(float dt) {
 
     params.trailDecay = up.td_level + up.td_amplitude * cosf(params.time * up.td_frequency + up.td_phase);
     params.speed      = up.speed_level + up.speed_amplitude * cosf(params.time * up.speed_frequency + up.speed_phase);
-    params.intensity  = up.intensity_level + up.intensity_amplitude * cosf(params.time * up.intensity_frequency
-        + up.intensity_phase);
+    params.intensity  = up.intensity_level + up.intensity_amplitude * cosf(params.time * up.intensity_frequency + up.intensity_phase);
 }
 
 void FlowScene::render() {
@@ -80,24 +78,19 @@ void FlowScene::render() {
     glBindFramebuffer(GL_FRAMEBUFFER, trailFBO[dst]);
     glViewport(0, 0, 1920, 1080);
 
-    flowShader->use();
-    flowShader->setFloat("u_seed", params.seed);
-    flowShader->setFloat("u_time", params.time);
-    flowShader->setVec2("u_resolution", 1920.0f, 1080.0f);
-    flowShader->setFloat("u_scale", params.scale);
-    flowShader->setFloat("u_speed", params.speed);
-    flowShader->setVec3(
-        "u_color",
-        params.color.r,
-        params.color.g,
-        params.color.b
-    );
-    flowShader->setFloat("u_trailDecay", params.trailDecay);
-    flowShader->setFloat("u_intensity", params.intensity);
+    shaders[currentVariant]->use();
+    shaders[currentVariant]->setFloat("u_seed", params.seed);
+    shaders[currentVariant]->setFloat("u_time", params.time);
+    shaders[currentVariant]->setVec2("u_resolution", 1920.0f, 1080.0f);
+    shaders[currentVariant]->setFloat("u_scale", params.scale);
+    shaders[currentVariant]->setFloat("u_speed", params.speed);
+    shaders[currentVariant]->setVec3("u_color", params.color.r, params.color.g, params.color.b);
+    shaders[currentVariant]->setFloat("u_trailDecay", params.trailDecay);
+    shaders[currentVariant]->setFloat("u_intensity", params.intensity);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, trailTex[src]);
-    flowShader->setInt("u_trailTex", 0);
+    shaders[currentVariant]->setInt("u_trailTex", 0);
 
     quad->draw();
 
@@ -112,4 +105,43 @@ void FlowScene::render() {
     quad->draw();
 
     ping = dst;
+}
+
+void FlowScene::nextVariant() {
+    int v = static_cast<int>(currentVariant);
+    v = (v + 1) % shaders.size();
+    currentVariant = static_cast<FlowVariant>(v);
+
+    for (int i = 0; i < 2; ++i) {
+        glBindFramebuffer(GL_FRAMEBUFFER, trailFBO[i]);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    params.time = 0.0f;
+}
+
+void FlowScene::prevVariant() {
+    int v = static_cast<int>(currentVariant);
+    v = (v - 1 + shaders.size()) % shaders.size();
+    currentVariant = static_cast<FlowVariant>(v);
+
+    for (int i = 0; i < 2; ++i) {
+        glBindFramebuffer(GL_FRAMEBUFFER, trailFBO[i]);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    params.time = 0.0f;
+    params.seed = 0.0f;
+    ping = 0;
+
+    params.time = 0.0f;
+    std::uniform_real_distribution<float> seedDist(0.0f, 1000.0f);
+    params.seed = seedDist(rng);
+}
+
+void FlowScene::onKey(SDL_Keycode key) {
+    if (key == SDLK_q) prevVariant();
+    if (key == SDLK_e) nextVariant();
 }

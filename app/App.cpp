@@ -154,6 +154,8 @@ void App::handleEvents() {
                 scenes.set(std::make_unique<NoiseScene>());
             else if (e.key.keysym.sym == SDLK_2)
                 scenes.set(std::make_unique<FlowScene>());
+            else
+                scenes.onKey(e.key.keysym.sym);
         }
     }
 }

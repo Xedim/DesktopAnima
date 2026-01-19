@@ -26,14 +26,11 @@ void NoiseScene::render() {
     shader->setFloat("u_seed", seed);
     shader->setFloat("u_time", time);
     shader->setVec2("u_resolution", 1920.0f, 1080.0f);
-    shader->setVec3("u_color", 1.0f, 0.5f, 0.0f);
-    shader->setFloat("u_time", time);
-    shader->setVec2("u_resolution", 1920.0f, 1080.0f);
-    shader->setVec3("u_color", 0.8f, 0.2f, 0.5f);
-    shader->setFloat("u_scale", 5.0f);
+    shader->setVec3("u_color", 0.5f, 0.0f, 0.5f);
+    shader->setFloat("u_scale", 20.0f);
     shader->setInt("u_octaves", 5);
-    shader->setFloat("u_speed", 0.2f);
-    shader->setFloat("u_ampFactor", 0.5f);
+    shader->setFloat("u_speed", 0.35f);
+    shader->setFloat("u_ampFactor", 0.50f);
 
     quad->draw();
 }

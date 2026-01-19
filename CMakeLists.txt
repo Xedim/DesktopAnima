@@ -25,12 +25,14 @@ add_executable(DesktopScenes
 
 target_include_directories(DesktopScenes PRIVATE
         .
+        /usr/include
 )
 
-target_link_libraries(DesktopScenes
+target_link_libraries(DesktopScenes PRIVATE
         SDL2::SDL2
         GLEW::GLEW
         OpenGL::GL
         X11::X11
-        Xext
+        X11::Xext
 )
+

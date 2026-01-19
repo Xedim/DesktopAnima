@@ -43,20 +43,20 @@ void main()
     for (int i = 0; i < u_octaves; i++)
     {
         vec2 offset = vec2(
-            0,
-            -2*t
+            sin(t * 0.7),
+            cos(t * 0.9)
         );
-        n += 1.2 * noise(p + offset) - 0.4;
-        vec2 warp = vec2(
-            noise(p*2 + 100),
-            noise(p + 100)
-        );
-        p += warp * 4;
+        n += noise(p + offset) * amp;
+        p *= 2.0;
         amp *= u_ampFactor;
     }
-    vec3 color = u_color;
-    color.r += n * 0.5;
-    color.g += n * 0.0;
-    color.b += n * 0.0;
-    fragColor = vec4(color - 0.65, 1.0);
+
+    fragColor = vec4(n * u_color, 1.0);
 }
+
+//    shader->setVec2("u_resolution", 1920.0f, 1080.0f);
+//    shader->setVec3("u_color", 0.8f, 0.0f, 0.0f);
+//    shader->setFloat("u_scale", 200.0f);
+//    shader->setInt("u_octaves", 5);
+//    shader->setFloat("u_speed", 50.35f);
+//    shader->setFloat("u_ampFactor", 0.30f);

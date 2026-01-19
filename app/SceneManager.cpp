@@ -12,6 +12,10 @@ void SceneManager::set(std::unique_ptr<Scene> scene) {
     }
 }
 
+void SceneManager::onKey(SDL_Keycode key) const {
+    if (current) current->onKey(key);
+}
+
 void SceneManager::update(float dt) const {
     if (current) current->update(dt);
 }
