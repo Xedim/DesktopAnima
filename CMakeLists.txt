@@ -21,6 +21,7 @@ add_executable(DesktopScenes
         gl/Shader.cpp
         gl/Quad.cpp
         scenes/FlowScene.h
+        Utils.cpp
 )
 
 target_include_directories(DesktopScenes PRIVATE
