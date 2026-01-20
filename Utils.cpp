@@ -1,5 +1,12 @@
 #include <vector>
 #include <cmath>
+#include <functional>
+#include <random>
+#include <boost/math/distributions/normal.hpp>
+#include <boost/math/distributions/cauchy.hpp>
+#include <boost/math/special_functions/zeta.hpp>
+#include <complex>
+#include <limits>
 
 //--------------polynomial--------------
 double polynomial(double x, const std::vector<double> &coefficients) {
@@ -62,7 +69,7 @@ double log_a(double x, double a) {
 //std::acosh(x);
 //std::atanh(x);
 
-//--------------hibrid--------------
+//--------------hybrid--------------
 double x_pow_y(double x, double y) {
     return std::exp(y * std::log(x));
 }
@@ -94,7 +101,6 @@ double x_pow_y(double x, double y) {
 //riemann
 //std::riemann_zeta(s);
 
-//#include <boost/math/special_functions/zeta.hpp>
 //boost::math::zeta (s);
 
 double weierstrass(double x,
@@ -163,7 +169,6 @@ double dirac_delta(double x, double eps = 1e-3) {
 }
 
 //------------------norm----------------
-#include <functional>
 
 using Function = std::function<double(double)>;
 
@@ -179,22 +184,18 @@ double L2_norm(Function f, double a, double b, int n = 10000) {
 }
 
 //------------statistical-----------
-#include <random>
 //distributions
 std::normal_distribution<double> normal(0.0, 1.0);
 std::cauchy_distribution<double> cauchy(0.0, 1.0);
 std::lognormal_distribution<double> lognormal(0.0, 1.0);
 
 //density
-#include <boost/math/distributions/normal.hpp>
-#include <boost/math/distributions/cauchy.hpp>
 
 //boost::math::normal nd(0.0, 1.0);
 //double pdf = boost::math::pdf(nd, x);
 //double cdf = boost::math::cdf(nd, x);
 
 //characteristic
-#include <complex>
 
 std::complex<double> normal_characteristic(double t,
                                             double mu,
@@ -260,9 +261,6 @@ double tent(double x)
 }
 
 //-----------properties------------
-#include <functional>
-#include <cmath>
-#include <limits>
 
 using Func = std::function<double(double)>;
 

@@ -1,7 +1,4 @@
 #include "FlowScene.h"
-
-#include <iostream>
-
 #include "../gl/Shader.h"
 #include "../gl/Quad.h"
 #include <GL/glew.h>
@@ -10,24 +7,24 @@
 void FlowScene::onEnter() {
     shaders[FlowVariant::Flow] = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
-        std::string(SHADER_DIR) + "flow.frag"
+        std::string(SHADER_DIR) + "flow/flow.frag"
     );
     shaders[FlowVariant::Colorful] = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
-        std::string(SHADER_DIR) + "flow_colorful.frag"
+        std::string(SHADER_DIR) + "flow/flow_colorful.frag"
     );
     shaders[FlowVariant::ColorChange] = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
-        std::string(SHADER_DIR) + "flow_color_change.frag"
+        std::string(SHADER_DIR) + "flow/flow_color_change.frag"
     );
     shaders[FlowVariant::Space] = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
-        std::string(SHADER_DIR) + "flow_space.frag"
+        std::string(SHADER_DIR) + "flow/flow_space.frag"
     );
 
     blitShader = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
-        std::string(SHADER_DIR) + "blit.frag"
+        std::string(SHADER_DIR) + "flow/blit.frag"
     );
     quad = std::make_unique<Quad>();
     initTrail(1920, 1080);
