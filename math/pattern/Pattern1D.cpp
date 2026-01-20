@@ -3,6 +3,19 @@
 namespace pattern1D {
 
     // -------------- Algebraic --------------
+
+    // Сумма геометрической прогрессии: 1 + a + a^2 + ... + a^(N-1)
+    [[nodiscard]] double geometric_sum(double a, int N) noexcept {
+        if (a == 1.0) return static_cast<double>(N);
+        double sum = 0.0;
+        double term = 1.0;
+        for (int i = 0; i < N; ++i) {
+            sum += term;
+            term *= a;
+        }
+        return sum;
+    }
+
     double algebraic_root(double x, const std::vector<double>& coefficients) {
         double result = 0.0;
         for (auto it = coefficients.rbegin(); it != coefficients.rend(); ++it)

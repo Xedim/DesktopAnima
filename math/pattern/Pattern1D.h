@@ -3,6 +3,8 @@
 #include "cmath"
 
 namespace Pattern1D {
+    double geometric_sum(double a, int N);
+
     double polynomial(double x,
                       const std::vector<double>& coefficients);
 

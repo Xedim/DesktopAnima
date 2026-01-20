@@ -4,16 +4,22 @@
 #include "../common/Constants.h"
 #include "../common/Types.h"
 
+
 namespace Analytics {
 
     // ---------------- Differential ----------------
 
-    Real derivative(Real (*f)(Real), Real x, Real h = Constants::H,
+    Real derivative(const Function1D& f, Real x, Real h = Constants::H,
                         StabPolicy policy = StabPolicy::Reject);
 
+    Real derivativeX(const Function2D& f, Real x, Real y_fixed, Real h = Constants::H,
+                 StabPolicy policy = StabPolicy::Reject);
+
+    Real derivativeY(const Function2D& f, Real x_fixed, Real y, Real h = Constants::H,
+                     StabPolicy policy = StabPolicy::Reject);
     // ---------------- Norm ----------------
 
-    Real L2_norm(Function1D f, Real a, Real b, Real n = Constants::L2_NORM_ITER,
+    Real L2_norm(const Function1D& f, Real a, Real b, Real n = Constants::L2_NORM_ITER,
                         StabPolicy policy = StabPolicy::Reject);
 
     // ---------------- Properties ----------------
@@ -33,8 +39,7 @@ namespace Analytics {
     bool isDecreasing(const Function1D& f, Real x1, Real x2, Real eps = Constants::EPS,
                         StabPolicy policy = StabPolicy::Reject);
 
-    bool isBounded(const Function1D& f, Real x,
-                        StabPolicy policy = StabPolicy::Reject);
+    bool isFiniteAt(const Function1D& f, Real x, StabPolicy policy = StabPolicy::Reject);
 
     bool isConvex(const Function1D& f, Real x, Real h = Constants::H,
                         StabPolicy policy = StabPolicy::Reject);

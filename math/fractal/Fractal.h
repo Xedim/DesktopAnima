@@ -6,6 +6,7 @@
 
 namespace Fractal {
 
+
     // ---------- 1D Fractals / Self-similar ----------
 
     Real weierstrass(Real x,
@@ -24,7 +25,7 @@ namespace Fractal {
                   Real r,
                   StabPolicy policy = StabPolicy::Reject);
 
-    Real iterate(Real x0,
+    Real iterate(Real x,
                  Real r,
                  int n = Constants::MAP_ITER,
                  StabPolicy policy = StabPolicy::Reject);

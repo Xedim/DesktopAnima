@@ -1,31 +1,18 @@
+//Maps.cpp
+
 #include "Maps.h"
+#include "../common/Utils.h"
+#include "../fractal/Fractal.h"
+#include <cmath>
 
 namespace Maps {
+    // -------------- 2D -> 1D / Maps --------------
 
-    // -------------- 1D Maps / Fractals --------------
-    inline Real logistic(Real x, Real r) {
-        return r * x * (1.0 - x);
-    }
-
-    Real iterate(Real x0, Real r, int n) {
-        Real x = x0;
-        for (int i = 0; i < n; ++i)
-            x = logistic(x, r);
-        return x;
-    }
-
-    inline Real tent(Real x) {
-        return x < 0.5 ? 2.0 * x : 2.0 * (1.0 - x);
-    }
-
-    // -------------- 2D / Complex Maps --------------
-    inline Complex julia(Complex z, Complex c) {
-        return z * z + c;
-    }
-
-    bool escapes(Complex z0, Complex c, int max_iter) {
-        Real threshold2 = 4.0;
+    [[nodiscard]] bool escapes(Complex z0, Complex c, int max_iter, Real threshold = Real{2}) {
+        if (max_iter <= 0 || threshold <= Real{0}) return false;
+        if (!Utils::isFiniteNum(z0) || !Utils::isFiniteNum(c)) return false;
         Complex z = z0;
+        Real threshold2 = threshold * threshold;
 
         for (int i = 0; i < max_iter; ++i) {
             Real zr = z.real();
@@ -36,19 +23,22 @@ namespace Maps {
             if (zr2 + zi2 > threshold2)
                 return true;
 
-            // z = z*z + c
-            z = Complex(zr2 - zi2 + c.real(), 2.0 * zr * zi + c.imag());
+            z = Complex(zr2 - zi2 + c.real(), Real{2} * zr * zi + c.imag());
+            z = Utils::checkStability(z, Constants::NEG_LIMIT, Constants::POS_LIMIT, StabPolicy::Reject);
         }
+
         return false;
     }
 
-    // -------------- Utilities --------------
-    Real atan2(Real y, Real x) {
-        return std::atan2(y, x);
+    [[nodiscard]] Real atan2(Real x, Real y) {
+        if (!Utils::isFiniteNum(x) || !Utils::isFiniteNum(y)) return NaN();
+        Real val = std::atan2(y, x);
+        return Utils::checkStability(val, -Constants::PI, Constants::PI, StabPolicy::Reject);
     }
 
-    Real hypot(Real x, Real y) {
-        return std::hypot(x, y);
+    [[nodiscard]] Real hypot(Real x, Real y) {
+        if (!Utils::isFiniteNum(x) || !Utils::isFiniteNum(y)) return NaN();
+        Real val = std::hypot(x, y);
+        return Utils::checkStability(val, Real{0}, Constants::POS_LIMIT, StabPolicy::Reject);
     }
-
 }

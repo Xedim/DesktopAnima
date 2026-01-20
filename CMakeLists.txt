@@ -40,7 +40,9 @@ add_executable(DesktopScenes
         math/fractal/Fractal.cpp
         math/fractal/Fractal.h
         math/special/Special.h
-        math/special/special.cpp
+        math/special/Special.cpp
+        math/common/Utils.h
+        math/common/todo.h
 )
 
 target_include_directories(DesktopScenes PRIVATE
