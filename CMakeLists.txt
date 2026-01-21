@@ -43,6 +43,10 @@ add_executable(DesktopScenes
         math/special/Special.cpp
         math/common/Utils.h
         math/common/todo.h
+        math/pattern/PatternRegistry.h
+        math/pattern/PatternIdentity.h
+        math/pattern/Functions.cpp
+        math/pattern/Functions.h
 )
 
 target_include_directories(DesktopScenes PRIVATE

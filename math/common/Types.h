@@ -30,3 +30,24 @@ enum class StabPolicy {
     Clamp,      // проекция
     Reject      // NaN при выходе
 };
+
+struct Interval {
+    Real min;
+    Real max;
+};
+
+enum class PatternKind {
+    Algebraic,
+    Power,
+    Logarithmic,
+    Trigonometric,
+    Hyperbolic,
+    Generalized
+};
+
+struct PatternDescriptor {
+    std::string_view name;
+    Interval domain;
+    Interval range;
+    PatternKind kind;
+};
