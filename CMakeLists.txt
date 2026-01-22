@@ -39,6 +39,7 @@ add_executable(DesktopScenes
         math/pattern/Functions.cpp
         math/pattern/Functions.h
         math/pattern/PatternExecutor.h
+        math/pattern/PatternList.h
 )
 
 target_include_directories(DesktopScenes PRIVATE

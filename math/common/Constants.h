@@ -57,7 +57,7 @@ namespace Constants {
     constexpr Real LOGISTIC_R_DEFAULT = 3.9;      // стандартное значение r для хаотического режима
 
     // ---------- Escapes Map ----------
-    constexpr Real ESC_TRESHOLD = 2.0;
+    constexpr Real ESC_THRESHOLD = 2.0;
 
     // ---------- Iterations / General ----------
     constexpr int MAP_ITER = 100;                   // стандартное число итераций для логистической карты

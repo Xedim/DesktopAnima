@@ -1,6 +1,7 @@
 //Pattern1D.h
-
 #pragma once
+
+/*
 #include <vector>
 #include "PatternIdentity.h"
 #include "../common/Types.h"
@@ -14,3 +15,4 @@ namespace Pattern1D {
     [[nodiscard]] PatternKind kind(PatternIdentity id);
 
 }
+*/

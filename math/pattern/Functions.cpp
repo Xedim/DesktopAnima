@@ -640,7 +640,7 @@ namespace Functions {
     Real median(VecReal x) {
         if (x.empty()) return NaN();
         auto mid = x.begin() + static_cast<std::ptrdiff_t>(x.size() / 2);
-        std::nth_element(x.begin(), mid, x.end());
+        std::ranges::nth_element(x, mid);
         Real m = *mid;
         if (x.size() % 2 == 0) {
             auto max_it = std::max_element(x.begin(), mid);
@@ -666,11 +666,11 @@ namespace Functions {
     }
 
     Real min(const VecReal& x) {
-        return x.empty() ? NaN() : *std::min_element(x.begin(), x.end());
+        return x.empty() ? NaN() : *std::ranges::min_element(x);
     }
 
     Real max(const VecReal& x) {
-        return x.empty() ? NaN() : *std::max_element(x.begin(), x.end());
+        return x.empty() ? NaN() : *std::ranges::max_element(x);
     }
 
     Real range(const VecReal& x) {
@@ -821,27 +821,29 @@ namespace Functions {
         if (n == 0 || q < 0 || q > 1) return NaN();
 
         const Real pos = q * static_cast<Real>(n - 1);
-        auto size_t i = static_cast<std::size_t>(pos);
+        const std::size_t i = static_cast<std::size_t>(pos);
         const Real frac = pos - static_cast<Real>(i);
 
-        // приведение к signed difference type
-        auto it_i = x.begin() + static_cast<std::vector<Real>::difference_type>(i);
-        std::nth_element(x.begin(), it_i, x.end());
+        using Diff = std::vector<Real>::difference_type;
+
+        auto it_i = x.begin() + static_cast<Diff>(i);
+        std::ranges::nth_element(x, it_i);
         const Real a = *it_i;
 
-        if (frac == 0 || i + 1 == n)
+        if (frac == Real{0} || i + 1 == n)
             return a;
 
-        auto it_i1 = x.begin() + static_cast<std::vector<Real>::difference_type>(i + 1);
-        std::nth_element(x.begin(), it_i1, x.end());
+        auto it_i1 = x.begin() + static_cast<Diff>(i + 1);
+        std::ranges::nth_element(x, it_i);
         const Real b = *it_i1;
 
         return a + frac * (b - a);
     }
 
 
+
     Real percentile(VecReal x, Real p) {
-        return quantile(std::move(x), p * Real(0.01));
+        return quantile(std::move(x), p * Real{0.01});
     }
 
     struct Quartiles { Real q1, q2, q3; };
@@ -854,13 +856,13 @@ namespace Functions {
         const std::size_t i2 = (n - 1) / 2;
         const std::size_t i3 = 3 * (n - 1) / 4;
 
-        std::nth_element(x.begin(), x.begin() + i2, x.end());
+        std::ranges::nth_element(x.begin(), x.begin() + i2, x.end());
         const Real q2 = x[i2];
 
-        std::nth_element(x.begin(), x.begin() + i1, x.begin() + i2);
+        std::ranges::nth_element(x.begin(), x.begin() + i1, x.begin() + i2);
         const Real q1 = x[i1];
 
-        std::nth_element(x.begin() + i2 + 1, x.begin() + i3, x.end());
+        std::ranges::nth_element(x.begin() + i2 + 1, x.begin() + i3, x.end());
         const Real q3 = x[i3];
 
         return { q1, q2, q3 };
@@ -880,8 +882,8 @@ namespace Functions {
         const std::size_t lo = k;
         const std::size_t hi = n - k;
 
-        std::nth_element(x.begin(), x.begin() + lo, x.end());
-        std::nth_element(x.begin() + lo, x.begin() + hi, x.end());
+        std::ranges::nth_element(x.begin(), x.begin() + lo, x.end());
+        std::ranges::nth_element(x.begin() + lo, x.begin() + hi, x.end());
 
         Real acc = 0;
         for (std::size_t i = lo; i < hi; ++i)
@@ -910,10 +912,10 @@ namespace Functions {
         const std::size_t n = x.size();
         const std::size_t k = static_cast<std::size_t>(alpha * n);
 
-        std::nth_element(x.begin(), x.begin() + k, x.end());
+        std::ranges::nth_element(x.begin(), x.begin() + k, x.end());
         const Real lo = x[k];
 
-        std::nth_element(x.begin(), x.end() - k - 1, x.end());
+        std::ranges::nth_element(x.begin(), x.end() - k - 1, x.end());
         const Real hi = x[n - k - 1];
 
         Real acc = 0;
@@ -1035,8 +1037,8 @@ namespace Functions {
         std::iota(ix.begin(), ix.end(), 0);
         std::iota(iy.begin(), iy.end(), 0);
 
-        std::sort(ix.begin(), ix.end(), [&](auto a, auto b) { return x[a] < x[b]; });
-        std::sort(iy.begin(), iy.end(), [&](auto a, auto b) { return y[a] < y[b]; });
+        std::ranges::sort(ix, [&](auto a, auto b) { return x[a] < x[b]; });
+        std::ranges::sort(iy, [&](auto a, auto b) { return y[a] < y[b]; });
 
         VecReal rx(n), ry(n);
         for (std::size_t i = 0; i < n; ++i) {
@@ -1051,20 +1053,19 @@ namespace Functions {
         const std::size_t n = x.size();
         if (n != y.size() || n < 2) return NaN();
 
-        int concordant = 0, discordant = 0;
+        Real concordant = 0, discordant = 0;
 
         for (std::size_t i = 0; i < n; ++i) {
             for (std::size_t j = i + 1; j < n; ++j) {
                 const Real dx = x[i] - x[j];
                 const Real dy = y[i] - y[j];
                 const Real p = dx * dy;
-                concordant += (p > 0);
-                discordant += (p < 0);
+                concordant += static_cast<Real>(p > 0);
+                discordant += static_cast<Real>(p < 0);
             }
         }
-
-        const int total = concordant + discordant;
-        return total ? Real(concordant - discordant) / total : NaN();
+        const Real total = concordant + discordant;
+        return total > Real{0} ? (concordant - discordant) / total : NaN();
     }
 
     Real autocovariance(const VecReal& x, int lag) {
@@ -1172,16 +1173,17 @@ namespace Functions {
 
             Real acc = 0;
             const Real inv_sigma = d.inv_sigma;
-            const Real log_norm = d.log_norm;
+            const Real log_norm  = d.log_norm;
+            const Real n         = static_cast<Real>(data.size());
 
-            // tight loop, SIMD-friendly
             for (Real x : data) {
                 const Real z = (x - d.mu) * inv_sigma;
                 acc += z * z;
             }
 
-            return -Real{0.5} * acc - Real{data.size()} * log_norm;
+            return -Real{0.5} * acc - n * log_norm;
         }
+
 
         struct LogNormal {
             Real mu;
@@ -1195,7 +1197,7 @@ namespace Functions {
                 : mu(mu_), sigma(sigma_) {
 
                 if (sigma_ > 0) {
-                    inv_sigma = Real(1) / sigma_;
+                    inv_sigma = Real{1} / sigma_;
                     log_norm = std::log(sigma_ * Constants::SQRT_2PI);
                 } else {
                     inv_sigma = log_norm = NaN();
@@ -1207,19 +1209,19 @@ namespace Functions {
             if (x <= 0) return 0;
             Real lx = std::log(x);
             Real z = (lx - d.mu) * d.inv_sigma;
-            return std::exp(-Real(0.5) * z * z) / (x * d.sigma * Constants::SQRT_2PI);
+            return std::exp(-Real{0.5} * z * z) / (x * d.sigma * Constants::SQRT_2PI);
         }
 
         inline Real cdf(const LogNormal& d, Real x) {
             if (x <= 0) return 0;
             Real z = (std::log(x) - d.mu) * d.inv_sigma / Constants::SQRT2;
-            return Real(0.5) * (Real(1) + std::erf(z));
+            return Real{0.5} * (Real{1} + std::erf(z));
         }
 
         inline Real quantile(const LogNormal& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
             return std::exp(d.mu + d.sigma * Constants::SQRT2 *
-                            boost::math::erf_inv(Real(2) * p - Real(1)));
+                            boost::math::erf_inv(Real{2} * p - Real{1}));
         }
 
         Real log_likelihood(const LogNormal& d, const VecReal& data) {
@@ -1234,8 +1236,8 @@ namespace Functions {
                 acc += lx;
             }
 
-            return -Real(0.5) * sq
-                   - Real(data.size()) * d.log_norm
+            return -Real{0.5} * sq
+                   - static_cast<Real>(data.size()) * d.log_norm
                    - acc;
         }
 
@@ -1253,13 +1255,13 @@ namespace Functions {
 
         inline Real cdf(const Exponential& d, Real x) {
             return (x < 0 || d.lambda <= 0) ? 0
-                   : Real(1) - std::exp(-d.lambda * x);
+                   : Real{1} - std::exp(-d.lambda * x);
         }
 
         inline Real quantile(const Exponential& d, Real p) {
             return (p <= 0 || p >= 1 || d.lambda <= 0)
                    ? NaN()
-                   : -std::log(Real(1) - p) / d.lambda;
+                   : -std::log(Real{1} - p) / d.lambda;
         }
 
         Real log_likelihood(const Exponential& d, const VecReal& data) {
@@ -1271,7 +1273,7 @@ namespace Functions {
                 sum += x;
             }
 
-            return Real(data.size()) * std::log(d.lambda)
+            return static_cast<Real>(data.size()) * std::log(d.lambda)
                    - d.lambda * sum;
         }
 
@@ -1285,7 +1287,7 @@ namespace Functions {
             explicit Weibull(Real k_, Real lambda_)
                 : k(k_), lambda(lambda_) {
 
-                inv_lambda = Real(1) / lambda_;
+                inv_lambda = Real{1} / lambda_;
                 log_lambda = std::log(lambda_);
             }
         };
@@ -1300,12 +1302,12 @@ namespace Functions {
 
         inline Real cdf(const Weibull& d, Real x) {
             if (x < 0) return 0;
-            return Real(1) - std::exp(-std::pow(x * d.inv_lambda, d.k));
+            return Real{1} - std::exp(-std::pow(x * d.inv_lambda, d.k));
         }
 
         inline Real quantile(const Weibull& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
-            return d.lambda * std::pow(-std::log(Real(1) - p), Real(1) / d.k);
+            return d.lambda * std::pow(-std::log(Real{1} - p), Real{1} / d.k);
         }
 
         Real log_likelihood(const Weibull& d, const VecReal& data) {
@@ -1319,7 +1321,7 @@ namespace Functions {
                 sum_pow += std::pow(t, d.k);
             }
 
-            return Real(data.size()) * (std::log(d.k) - d.k * d.log_lambda)
+            return static_cast<Real>(data.size()) * (std::log(d.k) - d.k * d.log_lambda)
                    + (d.k - 1) * sum_log
                    - sum_pow;
         }
@@ -1334,32 +1336,32 @@ namespace Functions {
             explicit Cauchy(Real x0_, Real gamma_)
                 : x0(x0_), gamma(gamma_) {
 
-                inv_gamma = Real(1) / gamma_;
+                inv_gamma = Real{1} / gamma_;
                 log_norm = std::log(Constants::PI * gamma_);
             }
         };
 
         inline Real pdf(const Cauchy& d, Real x) {
             Real z = (x - d.x0) * d.inv_gamma;
-            return Real(1) / (Constants::PI * d.gamma * (Real(1) + z * z));
+            return Real{1} / (Constants::PI * d.gamma * (Real{1} + z * z));
         }
 
         inline Real cdf(const Cauchy& d, Real x) {
-            return Real(0.5) + std::atan((x - d.x0) * d.inv_gamma) / Constants::PI;
+            return Real{0.5} + std::atan((x - d.x0) * d.inv_gamma) / Constants::PI;
         }
 
         inline Real quantile(const Cauchy& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
-            return d.x0 + d.gamma * std::tan(Constants::PI * (p - Real(0.5)));
+            return d.x0 + d.gamma * std::tan(Constants::PI * (p - Real{0.5}));
         }
 
         Real log_likelihood(const Cauchy& d, const VecReal& data) {
             Real acc = 0;
             for (Real x : data) {
                 Real z = (x - d.x0) * d.inv_gamma;
-                acc += std::log(Real(1) + z * z);
+                acc += std::log(Real{1} + z * z);
             }
-            return -Real(data.size()) * d.log_norm - acc;
+            return -static_cast<Real>(data.size()) * d.log_norm - acc;
         }
 
         struct StudentT {
@@ -1371,12 +1373,12 @@ namespace Functions {
                 log_norm =
                     boost::math::lgamma((nu + 1) / 2) -
                     boost::math::lgamma(nu / 2) -
-                    Real(0.5) * std::log(nu * Constants::PI);
+                    Real{0.5} * std::log(nu * Constants::PI);
             }
         };
 
         inline Real pdf(const StudentT& d, Real x) {
-            Real t = Real(1) + (x * x) / d.nu;
+            Real t = Real{1} + (x * x) / d.nu;
             return std::exp(d.log_norm) * std::pow(t, -(d.nu + 1) / 2);
         }
 
@@ -1395,10 +1397,10 @@ namespace Functions {
         Real log_likelihood(const StudentT& d, const VecReal& data) {
             Real acc = 0;
             for (Real x : data)
-                acc += std::log(Real(1) + (x * x) / d.nu);
+                acc += std::log(Real{1} + (x * x) / d.nu);
 
-            return Real(data.size()) * d.log_norm
-                   - Real(0.5) * (d.nu + 1) * acc;
+            return static_cast<Real>(data.size()) * d.log_norm
+                   - Real{0.5} * (d.nu + 1) * acc;
         }
 
     } // namespace dist
@@ -1447,7 +1449,7 @@ namespace Functions {
             Real diff = x[i] - y[i];
             if (diff != 0) d.push_back(std::abs(diff));
         }
-        std::sort(d.begin(), d.end());
+        std::ranges::sort(d);
         Real sum = 0;
         for (std::size_t i = 0; i < d.size(); ++i)
             sum += i + 1; // ранги
@@ -1458,8 +1460,8 @@ namespace Functions {
     inline Real ks_test(const VecReal& x, const VecReal& y) {
         if (x.empty() || y.empty()) return NaN();
         VecReal xs = x, ys = y;
-        std::sort(xs.begin(), xs.end());
-        std::sort(ys.begin(), ys.end());
+        std::ranges::sort(xs);
+        std::ranges::sort(ys);
 
         std::size_t i = 0, j = 0;
         Real d = 0;
@@ -1467,7 +1469,7 @@ namespace Functions {
             Real v = std::min(xs[i], ys[j]);
             while (i < xs.size() && xs[i] <= v) ++i;
             while (j < ys.size() && ys[j] <= v) ++j;
-            d = std::max(d, std::abs(Real(i)/xs.size() - Real(j)/ys.size()));
+            d = std::max(d, std::abs(static_cast<Real>(i)/xs.size() - static_cast<Real>(j)/ys.size()));
         }
         return d;
     }
@@ -1488,7 +1490,7 @@ namespace Functions {
     inline Real anderson_darling(const VecReal& x) {
         if (x.size() < 2) return NaN();
         VecReal xs = x;
-        std::sort(xs.begin(), xs.end());
+        std::ranges::sort(xs);
         Real m = mean(xs);
         Real s = stddev(xs);
 
@@ -1641,7 +1643,7 @@ namespace Functions {
         Real mean = y.back() / y.size();
         for (auto& v : y) v -= mean;
 
-        Real R = *std::max_element(y.begin(), y.end()) - *std::min_element(y.begin(), y.end());
+        Real R = *std::ranges::max_element(y) - *std::ranges::min_element(y);
         Real S = std::sqrt(std::inner_product(x.begin(), x.end(), x.begin(), Real{0}) / x.size());
         return std::log(R / S) / std::log(x.size());
     }
@@ -1738,8 +1740,8 @@ namespace Functions {
             samples.push_back(sum / x.size());
         }
 
-        std::nth_element(samples.begin(), samples.begin() + static_cast<std::size_t>((1 - alpha) / 2 * n), samples.end());
-        std::nth_element(samples.begin(), samples.begin() + static_cast<std::size_t>((1 + alpha) / 2 * n), samples.end());
+        std::ranges::nth_element(samples.begin(), samples.begin() + static_cast<std::size_t>((1 - alpha) / 2 * n), samples.end());
+        std::ranges::nth_element(samples.begin(), samples.begin() + static_cast<std::size_t>((1 + alpha) / 2 * n), samples.end());
 
         std::size_t lo = static_cast<std::size_t>((1 - alpha) / 2 * n);
         std::size_t hi = static_cast<std::size_t>((1 + alpha) / 2 * n);
@@ -1768,7 +1770,7 @@ namespace Functions {
         int count = 0;
 
         for (int i = 0; i < trials; ++i) {
-            std::shuffle(z.begin(), z.end(), gen);
+            std::ranges::shuffle(z.begin(), z.end(), gen);
             Real m1 = std::accumulate(z.begin(), z.begin() + x.size(), Real{0}) / x.size();
             Real m2 = std::accumulate(z.begin() + x.size(), z.end(), Real{0}) / y.size();
             if (std::abs(m1 - m2) >= obs) ++count;
@@ -1917,19 +1919,19 @@ namespace Functions {
         const std::size_t n = x.size();
 
         VecReal sorted = x;
-        std::nth_element(sorted.begin(), sorted.begin() + n / 2, sorted.end());
+        std::ranges::nth_element(sorted.begin(), sorted.begin() + n / 2, sorted.end());
         Real median = sorted[n / 2];
 
         VecReal deviations(n);
         for (std::size_t i = 0; i < n; ++i)
             deviations[i] = std::abs(x[i] - median);
 
-        std::nth_element(deviations.begin(), deviations.begin() + n / 2, deviations.end());
+        std::ranges::nth_element(deviations.begin(), deviations.begin() + n / 2, deviations.end());
         Real mad = deviations[n / 2];
         if (mad == 0) mad = 1e-12; // защита от деления на ноль
 
         VecReal out(n);
-        const Real scale = 0.6745; // стандартная константа для модифицированного Z
+        constexpr Real scale = 0.6745; // стандартная константа для модифицированного Z
         for (std::size_t i = 0; i < n; ++i)
             out[i] = scale * (x[i] - median) / mad;
 

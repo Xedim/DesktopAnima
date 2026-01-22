@@ -1,48 +1,27 @@
-//PatternRegistry.h
 #pragma once
-#include "PatternIdentity.h"
-#include "../common/Types.h"
+#include "PatternID.h"
+#include "PatternTypes.h"
 #include <array>
-#include <limits>
-#include <string_view>
-
-struct Interval {
-    Real min;
-    Real max;
-};
 
 struct PatternDescriptor {
     std::string_view name;
     Interval domain;
     Interval range;
+    PatternKind kind;
+    PatternSignature signature;
 };
 
-namespace pattern1D {
+namespace pattern {
 
-    constexpr double INF = std::numeric_limits<double>::infinity();
+    constexpr std::array<PatternDescriptor, size_t(PatternID::_Count)> registry = {{
+        #define X(id, sig, fn, name, domain, range, kind) \
+        PatternDescriptor{ name, domain, range, kind, PatternSignature::sig },
+        #include "PatternList.h"
+        #undef X
+    }};
 
-    // Здесь регистрируем только те функции, для которых известны domain/range
-    constexpr std::array<PatternDescriptor,
-        static_cast<size_t>(PatternID::_Count)> registry = {{
-            { "sin",            { -INF, INF }, { -1.0, 1.0 } },
-            { "cos",            { -INF, INF }, { -1.0, 1.0 } },
-            { "log",            { 0.0, INF },  { -INF, INF } },
-            { "exp",            { -INF, INF }, { 0.0, INF } },
-            { "dirac_delta",    { -INF, INF }, { 0.0, INF } },
-            // Остальные функции по необходимости можно оставить пустыми или с INF
-            { "", { -INF, INF }, { -INF, INF } } // заглушка
-        }};
-
-    [[nodiscard]] constexpr const PatternDescriptor& descriptor(PatternID id) {
-        return registry[static_cast<size_t>(id)];
+    constexpr const PatternDescriptor& descriptor(PatternID id) {
+        return registry[size_t(id)];
     }
 
-    [[nodiscard]] constexpr Interval domain(PatternID id) {
-        return descriptor(id).domain;
-    }
-
-    [[nodiscard]] constexpr Interval range(PatternID id) {
-        return descriptor(id).range;
-    }
-
-} // namespace pattern1D
+} // namespace pattern

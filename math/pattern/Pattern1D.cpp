@@ -1,5 +1,5 @@
 //Pattern1D.cpp
-
+/*
 #include "Pattern1D.h"
 #include "PatternRegistry.h"
 #include "PatternIdentity.h"
@@ -22,3 +22,4 @@ namespace pattern1D {
     }
 
 } // namespace pattern1D
+*/

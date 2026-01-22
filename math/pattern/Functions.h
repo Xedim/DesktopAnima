@@ -1,4 +1,4 @@
-//Pattern1D.h
+//Functions.h
 
 #pragma once
 #include <vector>
@@ -193,9 +193,6 @@ namespace Functions {
 
     Real quantile(VecReal x, Real q);
     Real percentile(VecReal x, Real p);
-
-    struct Quartiles { Real q1, q2, q3; };
-
     Quartiles quartiles(VecReal x);
     Real iqr(VecReal x);
     Real trimmed_mean(VecReal x, Real alpha);
@@ -226,46 +223,6 @@ namespace Functions {
     // ==========================================================
 
     namespace dist {
-
-        struct Normal {
-            Real mu;
-            Real sigma;
-        };
-
-        struct LogNormal {
-            Real mu;
-            Real sigma;
-        };
-
-        struct Exponential {
-            Real lambda;
-        };
-
-        struct Gamma {
-            Real k;
-            Real theta;
-        };
-
-        struct Beta {
-            Real alpha;
-            Real beta;
-        };
-
-        struct Weibull {
-            Real k;
-            Real lambda;
-        };
-
-        struct Cauchy {
-            Real x0;
-            Real gamma;
-        };
-
-        struct StudentT {
-            Real nu;
-        };
-
-        // ---- common interface ----
 
         Real pdf(const Normal& d, Real x);
         Real cdf(const Normal& d, Real x);
@@ -338,8 +295,8 @@ namespace Functions {
     // ================= Characteristic Functions ==============
     // ==========================================================
 
-    Complex normal_characteristic(double t, double mu, double sigma);
-    Complex characteristic_from_samples(const VecReal& samples, double t);
+    Complex normal_characteristic(Real t, Real mu, Real sigma);
+    Complex characteristic_from_samples(const VecReal& samples, Real t);
 
     // ==========================================================
     // ================= Time Series Statistics =================
@@ -361,19 +318,13 @@ namespace Functions {
     // ==========================================================
 
     Real bootstrap_mean(const VecReal& x, int n);
-    std::pair<Real, Real> bootstrap_ci(const VecReal& x, Real alpha);
+    RealPair bootstrap_ci(const VecReal& x, Real alpha);
     VecReal jackknife(const VecReal& x);
     Real permutation_test(const VecReal& x, const VecReal& y);
 
     // ==========================================================
     // ================= Regression & Estimation ================
     // ==========================================================
-
-    struct LinearRegressionResult {
-        Real slope;
-        Real intercept;
-        Real r2;
-    };
 
     LinearRegressionResult linear_regression(const VecReal& x, const VecReal& y);
     VecReal polynomial_regression(const VecReal& x, const VecReal& y, int degree);

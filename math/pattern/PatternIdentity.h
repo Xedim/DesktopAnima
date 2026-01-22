@@ -2,6 +2,14 @@
 #pragma once
 
 enum class PatternID {
+    #define X(id, sig, fn, name, domain, range, kind) id,
+    #include "PatternList.h"
+    #undef X
+        _Count
+};
+
+/*
+enum class PatternID {
     // ---------------- Algebra / Arithmetic ----------------
     Factorial,
     Binomial,
@@ -199,4 +207,4 @@ enum class PatternID {
 
     _Count // всегда последний элемент, чтобы знать число функций
 };
-
+*/
