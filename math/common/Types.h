@@ -199,162 +199,142 @@ using ArgVariant = std::variant<
 template<typename R, typename... Args>
 using Func = std::function<R(Args...)>;
 
-using RealFn            = Func<Real, Real>;
-using IntFn             = Func<Real, Real>;
-using VecFn             = Func<Real, const VecReal&>;
+template<typename... Args>
+using ArgsTuple = std::tuple<Args...>;
+
+template<typename R, typename Tuple>
+struct WrapFn;
+
+template<typename R, typename... Args>
+struct WrapFn<R, std::tuple<Args...>> {
+    using result_type = R;
+    using args_tuple  = std::tuple<Args...>;
+
+    std::function<R(Args...)> fn;
+};
+
+//=============================================
 
 using UnaryFns = std::variant<
-    RealFn,
-    IntFn,
-    VecFn
+    WrapFn<Real, ArgsTuple<Real>>,
+    WrapFn<Real, ArgsTuple<int>>,
+    WrapFn<Real, ArgsTuple<VecReal>>
 >;
-
-using RealRealFn        = Func<Real, Real,            Real>;
-using RealIntFn         = Func<Real, Real,            int>;
-using RealVecFn         = Func<Real, Real,            const VecReal&>;
-using IntRealFn         = Func<Real, int,             Real>;
-using IntIntFn          = Func<Real, int,             int>;
-using IntVecFn          = Func<Real, int,             const VecReal&>;
-using VecRealFn         = Func<Real, const VecReal&,  Real>;
-using VecIntFn          = Func<Real, const VecReal&,  int>;
-using VecVecFn          = Func<Real, const VecReal&,  const VecReal&>;
 
 using BinaryFns = std::variant<
-    RealRealFn,
-    RealIntFn,
-    RealVecFn,
-    IntRealFn,
-    IntIntFn,
-    IntVecFn,
-    VecRealFn,
-    VecIntFn,
-    VecVecFn
-    >;
+    WrapFn<Real, ArgsTuple<Real, Real>>,
+    WrapFn<Real, ArgsTuple<Real, int>>,
+    WrapFn<Real, ArgsTuple<Real, VecReal>>,
 
-using RealRealRealFn    = Func<Real, Real,            Real,            Real>;
-using RealRealIntFn     = Func<Real, Real,            Real,            int>;
-using RealRealVecFn     = Func<Real, Real,            Real,            const VecReal&>;
-using RealIntRealFn     = Func<Real, Real,            int,             Real>;
-using RealIntIntFn      = Func<Real, Real,            int,             int>;
-using RealIntVecFn      = Func<Real, Real,            int,             const VecReal&>;
-using RealVecRealFn     = Func<Real, Real,            const VecReal&,  Real>;
-using RealVecIntFn      = Func<Real, Real,            const VecReal&,  int>;
-using RealVecVecFn      = Func<Real, Real,            const VecReal&,  const VecReal&>;
-using IntRealRealFn     = Func<Real, int,             Real,            Real>;
-using IntRealIntFn      = Func<Real, int,             Real,            int>;
-using IntRealVecFn      = Func<Real, int,             Real,            const VecReal&>;
-using IntIntRealFn      = Func<Real, int,             int,             Real>;
-using IntIntIntFn       = Func<Real, int,             int,             int>;
-using IntIntVecFn       = Func<Real, int,             int,             const VecReal&>;
-using IntVecRealFn      = Func<Real, int,             const VecReal&,  Real>;
-using IntVecIntFn       = Func<Real, int,             const VecReal&,  int>;
-using IntVecVecFn       = Func<Real, int,             const VecReal&,  const VecReal&>;
-using VecRealRealFn     = Func<Real, const VecReal&,  Real,            Real>;
-using VecRealIntFn      = Func<Real, const VecReal&,  Real,            int>;
-using VecRealVecFn      = Func<Real, const VecReal&,  Real,            const VecReal&>;
-using VecIntRealFn      = Func<Real, const VecReal&,  int,             Real>;
-using VecIntIntFn      = Func<Real, const VecReal&,  int,             int>;
-using VecIntVecFn       = Func<Real, const VecReal&,  int,             const VecReal&>;
-using VecVecRealFn      = Func<Real, const VecReal&,  const VecReal&,  Real>;
-using VecVecIntFn       = Func<Real, const VecReal&,  const VecReal&,  int>;
-using VecVecVecFn       = Func<Real, const VecReal&,  const VecReal&,  const VecReal&>;
+    WrapFn<Real, ArgsTuple<int, Real>>,
+    WrapFn<Real, ArgsTuple<int, int>>,
+    WrapFn<Real, ArgsTuple<int, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<VecReal, Real>>,
+    WrapFn<Real, ArgsTuple<VecReal, int>>,
+    WrapFn<Real, ArgsTuple<VecReal, VecReal>>
+>;
 
 using TernaryFns = std::variant<
-    RealRealRealFn,
-    RealRealIntFn,
-    RealRealVecFn,
-    RealIntRealFn,
-    RealIntIntFn,
-    RealIntVecFn,
-    RealVecRealFn,
-    RealVecIntFn,
-    RealVecVecFn,
-    IntRealRealFn,
-    IntRealIntFn,
-    IntRealVecFn,
-    IntIntRealFn,
-    IntIntIntFn,
-    IntIntVecFn,
-    IntVecRealFn,
-    IntVecIntFn,
-    IntVecVecFn,
-    VecRealRealFn,
-    VecRealIntFn,
-    VecRealVecFn,
-    VecIntRealFn,
-    VecIntIntFn,
-    VecIntVecFn,
-    VecVecRealFn,
-    VecVecIntFn,
-    VecVecVecFn
-    >;
+    WrapFn<Real, ArgsTuple<Real, Real, Real>>,
+    WrapFn<Real, ArgsTuple<Real, Real, int>>,
+    WrapFn<Real, ArgsTuple<Real, Real, VecReal>>,
 
-using ComplexComplexFn  = Func<Complex, Complex, Complex>;
-using ComplexComplexRealRealFn = Func<bool, Complex, Complex, Real, Real>;
-using Complex_3RealFn = Func<bool, Real, Real, Real>;
-using Complex_VecRealFn = Func<bool, const VecReal&, Real>;
+    WrapFn<Real, ArgsTuple<Real, int, Real>>,
+    WrapFn<Real, ArgsTuple<Real, int, int>>,
+    WrapFn<Real, ArgsTuple<Real, int, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<Real, VecReal, Real>>,
+    WrapFn<Real, ArgsTuple<Real, VecReal, int>>,
+    WrapFn<Real, ArgsTuple<Real, VecReal, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<int, Real, Real>>,
+    WrapFn<Real, ArgsTuple<int, Real, int>>,
+    WrapFn<Real, ArgsTuple<int, Real, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<int, int, Real>>,
+    WrapFn<Real, ArgsTuple<int, int, int>>,
+    WrapFn<Real, ArgsTuple<int, int, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<int, VecReal, Real>>,
+    WrapFn<Real, ArgsTuple<int, VecReal, int>>,
+    WrapFn<Real, ArgsTuple<int, VecReal, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<VecReal, Real, Real>>,
+    WrapFn<Real, ArgsTuple<VecReal, Real, int>>,
+    WrapFn<Real, ArgsTuple<VecReal, Real, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<VecReal, int, Real>>,
+    WrapFn<Real, ArgsTuple<VecReal, int, int>>,
+    WrapFn<Real, ArgsTuple<VecReal, int, VecReal>>,
+
+    WrapFn<Real, ArgsTuple<VecReal, VecReal, Real>>,
+    WrapFn<Real, ArgsTuple<VecReal, VecReal, int>>,
+    WrapFn<Real, ArgsTuple<VecReal, VecReal, VecReal>>
+>;
 
 using ComplexFns = std::variant<
-    ComplexComplexFn,
-    ComplexComplexRealRealFn,
-    Complex_3RealFn,
-    Complex_VecRealFn
-    >;
-
-using RealRealRealIntPolicyFn = Func<Real, Real, Real, Real, int, StabPolicy>;
-using RealIntPolicyFn = Func<Real, Real, int, StabPolicy>;
-using RealRealPolicyFn = Func<Real, Real, Real, StabPolicy>;
-using RealPolicyFn = Func<Real, Real, StabPolicy>;
-using RealRealIntPolicyFn = Func<Real, Real, Real, int, StabPolicy>;
+    WrapFn<Complex, ArgsTuple<Complex, Complex>>,
+    WrapFn<bool, ArgsTuple<Complex, Complex, Real, Real>>,
+    WrapFn<bool, ArgsTuple<Real, Real, Real>>,
+    WrapFn<bool, ArgsTuple<VecReal, Real>>
+>;
 
 using PolicyFns = std::variant<
-    RealRealRealIntPolicyFn,
-    RealIntPolicyFn,
-    RealRealPolicyFn,
-    RealPolicyFn,
-    RealRealIntPolicyFn
+    WrapFn<Real, ArgsTuple<Real, Real, Real, Real, int, StabPolicy>>,
+    WrapFn<Real, ArgsTuple<Real, Real, int, StabPolicy>>,
+    WrapFn<Real, ArgsTuple<Real, Real, Real, StabPolicy>>,
+    WrapFn<Real, ArgsTuple<Real, StabPolicy>>,
+    WrapFn<Real, ArgsTuple<Real, Real, int, StabPolicy>>
 >;
-
-using Vec_VecRealSizeTFn = Func<VecReal, const VecReal&, std::size_t>;
-using Vec_VecRealFn = Func<VecReal, const VecReal&, Real>;
-using Vec_VecIntFn = Func<VecReal, const VecReal&, int>;
-using Vec_VecFn = Func<VecReal, const VecReal&>;
-using Vec_IntIntFn = Func<VecReal, int, int>;
-using Vec_VecVecIntFn = Func<VecReal, const VecReal&, const VecReal&, int>;
 
 using VectorFns = std::variant<
-    Vec_VecRealSizeTFn,
-    Vec_VecRealFn,
-    Vec_VecIntFn,
-    Vec_VecFn,
-    Vec_IntIntFn,
-    Vec_VecVecIntFn
+    WrapFn<VecReal, ArgsTuple<const VecReal&, std::size_t>>,
+    WrapFn<VecReal, ArgsTuple<const VecReal&, Real>>,
+    WrapFn<VecReal, ArgsTuple<const VecReal&, int>>,
+    WrapFn<VecReal, ArgsTuple<const VecReal&>>,
+    WrapFn<VecReal, ArgsTuple<int, int>>,
+    WrapFn<VecReal, ArgsTuple<const VecReal&, const VecReal&, int>>
 >;
-
-using bool_VecRealFn = Func<bool, const VecReal&, Real>;
-using bool_VecFn = Func<bool, const VecReal&>;
-using Bool4RealFn = Func<bool, Real, Real, Real, Real>;
 
 using BoolFns = std::variant<
-    bool_VecRealFn,
-    bool_VecFn,
-    Bool4RealFn
+    WrapFn<bool, ArgsTuple<const VecReal&, Real>>,
+    WrapFn<bool, ArgsTuple<const VecReal&>>,
+    WrapFn<bool, ArgsTuple<Real, Real, Real, Real>>
 >;
-
-using Pair_VecRealFn = Func<RealPair, const VecReal&, Real>;
-using LR_VecVecFn = Func<LinearRegressionResult, const VecReal&, const VecReal&>;
-using Quartiles_VecFn = Func<Quartiles, const VecReal&>;
 
 using SpecialFns = std::variant<
-    Pair_VecRealFn,
-    LR_VecVecFn,
-    Quartiles_VecFn
+    WrapFn<RealPair, ArgsTuple<const VecReal&, Real>>,
+    WrapFn<LinearRegressionResult, ArgsTuple<const VecReal&, const VecReal&>>,
+    WrapFn<Quartiles, ArgsTuple<const VecReal&>>
 >;
 
-template<typename Dist>
-using DistRealFnT = Func<Real, const Dist&, Real>;
+using DistFns = std::variant<
+    WrapFn<Real, ArgsTuple<const Normal&, Real>>,
+    WrapFn<Real, ArgsTuple<const LogNormal&, Real>>,
+    WrapFn<Real, ArgsTuple<const Exponential&, Real>>,
+    WrapFn<Real, ArgsTuple<const Gamma&, Real>>,
+    WrapFn<Real, ArgsTuple<const Beta&, Real>>,
+    WrapFn<Real, ArgsTuple<const Weibull&, Real>>,
+    WrapFn<Real, ArgsTuple<const Cauchy&, Real>>,
+    WrapFn<Real, ArgsTuple<const StudentT&, Real>>,
 
-template<typename Dist>
-using DistVecRealFnT = Func<Real, const Dist&, const VecReal&>;
+    WrapFn<Real, ArgsTuple<const Normal&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const LogNormal&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const Exponential&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const Gamma&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const Beta&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const Weibull&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const Cauchy&, const VecReal&>>,
+    WrapFn<Real, ArgsTuple<const StudentT&, const VecReal&>>
+>;
 
-using DistFns = std::variant<Normal, LogNormal, Exponential, Gamma, Beta, Weibull, Cauchy, StudentT>;
+using AnyFnVariant = std::variant<
+    UnaryFns, BinaryFns, TernaryFns, ComplexFns,
+    VectorFns, BoolFns, SpecialFns, DistFns, PolicyFns
+>;
+
+using ResultVariant = std::variant<
+    std::monostate, Real, bool, VecReal, Complex,
+    RealPair, LinearRegressionResult, Quartiles
+>;
