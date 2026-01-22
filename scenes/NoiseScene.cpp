@@ -6,7 +6,7 @@
 void NoiseScene::onEnter() {
     shader = std::make_unique<Shader>(
         std::string(SHADER_DIR) + "fullscreen.vert",
-        std::string(SHADER_DIR) + "noise.frag"
+        std::string(SHADER_DIR) + "/noise/noise.frag"
     );
     quad = std::make_unique<Quad>();
     time = 0.0f;
@@ -26,7 +26,7 @@ void NoiseScene::render() {
     shader->setFloat("u_seed", seed);
     shader->setFloat("u_time", time);
     shader->setVec2("u_resolution", 1920.0f, 1080.0f);
-    shader->setVec3("u_color", 0.5f, 0.0f, 0.5f);
+    shader->setVec3("u_color", 0.0f, 0.5f, 0.0f);
     shader->setFloat("u_scale", 20.0f);
     shader->setInt("u_octaves", 5);
     shader->setFloat("u_speed", 0.35f);

@@ -24,9 +24,7 @@ add_executable(DesktopScenes
         gl/Quad.cpp
         scenes/FlowScene.h
         Utils.cpp
-        math/pattern/Pattern1D.h
         math/pattern/Pattern2D.h
-        math/pattern/Pattern1D.cpp
         math/pattern/Pattern2D.cpp
         math/analytics/Analytics.h
         math/analytics/Analytics.cpp

@@ -12,7 +12,7 @@ uniform int u_octaves;     // число октав
 uniform float u_speed;     // скорость анимации
 uniform float u_ampFactor; // уменьшение амплитуды для каждой октавы
 //uniform int u_pattern;     // выбор паттерна
-int u_pattern = 3;
+int u_pattern = 7;
 // -----------------------
 
 // --- хэш / базовый шум ---
@@ -58,6 +58,10 @@ float patternValue(vec2 uv, float t) {
     else if(u_pattern == 1) return weierstrassPattern(x);
     else if(u_pattern == 2) return noise(uv*10.0 + t);
     else if(u_pattern == 3) return weierstrassPattern(xPowY(t, x));
+    else if(u_pattern == 4) return rationalWarp(sin(warpUV(uv, y).x) + cos(warpUV(uv, x).y));
+    else if(u_pattern == 5) return rationalWarp(sin(warpUV(uv, y).x) / cos(warpUV(uv, x).y)) * (sin(t) - 0.3);
+    else if(u_pattern == 6) return rationalWarp(cos(warpUV(uv, y).x) * (sin(t) - 0.3) - cos(warpUV(uv, x).y) * (sin(t) + 0.3));
+    else if(u_pattern == 7) return (sqrt(noise(uv*10.0) * noise(uv*10.0) - noise(uv*10.0 + t) * noise(uv*10.0 + t)) / logRamp(fract(t)));
     return 0.0;
 }
 
@@ -77,9 +81,9 @@ void main() {
     }
 
     vec3 color = u_color;
-    color.r += n * 0.5;
+    color.r += n * 0.0;
     color.g += n * 0.0;
     color.b += n * 0.0;
-    color += vec3(n*0.5); // применяем ко всем каналам
-    fragColor = vec4(color - 0.5, 1.0); // сдвиг цвета для визуализации
+    color += vec3(n*0.01); // применяем ко всем каналам
+    fragColor = vec4(color - 0.3, 1.0); // сдвиг цвета для визуализации
 }

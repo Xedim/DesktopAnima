@@ -1,6 +1,5 @@
 //Functions.cpp
 
-#include "Pattern1D.h"
 #include "../common/Utils.h"
 #include "../analytics/Analytics.h"
 #include <boost/math/special_functions/bessel.hpp>
@@ -577,7 +576,7 @@ namespace Functions {
         return Utils::checkStability(y, Constants::NEG_LIMIT, Constants::POS_LIMIT, policy);
     }
 
-    [[nodiscard]] bool escapes(Complex z0, Complex c, int max_iter, Real threshold = Constants::ESC_TRESHOLD) {
+    [[nodiscard]] bool escapes(Complex z0, Complex c, int max_iter, Real threshold = Constants::ESC_THRESHOLD) {
         if (max_iter <= 0 || threshold <= Real{0}) return false;
         if (!Utils::isFiniteNum(z0) || !Utils::isFiniteNum(c)) return false;
 
@@ -840,13 +839,9 @@ namespace Functions {
         return a + frac * (b - a);
     }
 
-
-
     Real percentile(VecReal x, Real p) {
         return quantile(std::move(x), p * Real{0.01});
     }
-
-    struct Quartiles { Real q1, q2, q3; };
 
     Quartiles quartiles(VecReal x) {
         const std::size_t n = x.size();
@@ -867,7 +862,6 @@ namespace Functions {
 
         return { q1, q2, q3 };
     }
-
 
     Real iqr(VecReal x) {
         const auto q = quartiles(std::move(x));
@@ -892,7 +886,6 @@ namespace Functions {
         return acc / (hi - lo);
     }
 
-
     // ==========================================================
     // ================= Robust Statistics ======================
     // ==========================================================
@@ -904,7 +897,6 @@ namespace Functions {
             v = std::abs(v - m);
         return median(x);
     }
-
 
     Real winsorized_mean(VecReal x, Real alpha) {
         if (x.empty() || alpha < 0 || alpha >= Real{0.5}) return NaN();
@@ -926,7 +918,6 @@ namespace Functions {
         }
         return acc / n;
     }
-
 
     Real huber_mean(const VecReal& x, Real delta) {
         if (x.empty() || delta <= 0) return NaN();

@@ -13,6 +13,9 @@ using Complex = std::complex<Real>;
 using VecReal = std::vector<Real>;
 using VecComplex = std::vector<Complex>;
 
+using Function1D = std::function<Real(Real)>;
+using Function2D = std::function<Real(Real, Real)>;
+
 struct Normal {
     Real mu;
     Real sigma;
