@@ -1,5 +1,4 @@
 //Types.h
-
 #pragma once
 #include <complex>
 #include <vector>
@@ -9,7 +8,7 @@
 // Алиасы для читаемости
 using Real = double;
 using RealPair = std::pair<Real, Real>;
-using Complex = std::complex<double>;
+using Complex = std::complex<Real>;
 using VecReal = std::vector<Real>;
 using VecComplex = std::vector<Complex>;
 using Function1D = std::function<Real(Real)>;
@@ -31,23 +30,3 @@ enum class StabPolicy {
     Reject      // NaN при выходе
 };
 
-struct Interval {
-    Real min;
-    Real max;
-};
-
-enum class PatternKind {
-    Algebraic,
-    Power,
-    Logarithmic,
-    Trigonometric,
-    Hyperbolic,
-    Generalized
-};
-
-struct PatternDescriptor {
-    std::string_view name;
-    Interval domain;
-    Interval range;
-    PatternKind kind;
-};

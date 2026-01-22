@@ -9,6 +9,7 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS math_tr1 math_c99)
 
 add_definitions(-DSHADER_DIR="${CMAKE_SOURCE_DIR}/shaders/")
 
@@ -27,26 +28,17 @@ add_executable(DesktopScenes
         math/pattern/Pattern2D.h
         math/pattern/Pattern1D.cpp
         math/pattern/Pattern2D.cpp
-        math/dynamics/Maps.h
-        math/dynamics/Maps.cpp
         math/analytics/Analytics.h
         math/analytics/Analytics.cpp
-        math/statistics/Statistics.h
-        math/statistics/Statistics.cpp
-        math/signal/Embedding.h
-        math/signal/Embedding.cpp
         math/common/Types.h
         math/common/Constants.h
-        math/fractal/Fractal.cpp
-        math/fractal/Fractal.h
-        math/special/Special.h
-        math/special/Special.cpp
         math/common/Utils.h
         math/common/todo.h
         math/pattern/PatternRegistry.h
         math/pattern/PatternIdentity.h
         math/pattern/Functions.cpp
         math/pattern/Functions.h
+        math/pattern/PatternExecutor.h
 )
 
 target_include_directories(DesktopScenes PRIVATE
@@ -61,5 +53,7 @@ target_link_libraries(DesktopScenes PRIVATE
         X11::X11
         X11::Xext
         Boost::boost
+        Boost::math_tr1
+        Boost::math_c99
 )
 

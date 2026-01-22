@@ -1,6 +1,7 @@
+//PatternIdentity.h
 #pragma once
 
-enum class PatternIdentity {
+enum class PatternID {
     // ---------------- Algebra / Arithmetic ----------------
     Factorial,
     Binomial,
@@ -86,9 +87,6 @@ enum class PatternIdentity {
     Clamp,
     Lerp,
     Fma,
-
-    // ---------------- Dynamical Systems ----------------
-    TakensMap,
 
     // ---------------- Fractals ----------------
     Weierstrass,
@@ -179,6 +177,7 @@ enum class PatternIdentity {
     Detrend,
     Difference,
     LyapunovExponent,
+    TakensMap,
 
     // ---------------- Sampling & Resampling ----------------
     BootstrapMean,

@@ -6,7 +6,7 @@
 #include "../common/Constants.h"
 #include "cmath"
 
-namespace functions {
+namespace Functions {
 
     // =============================================
     // ================= Algebraic =================
@@ -104,9 +104,6 @@ namespace functions {
     Real legendre(int l, Real x);
     Real assoc_legendre(int l, int m, Real x);
 
-    Real erf(Real x);
-    Real erfc(Real x);
-
     Real riemann_zeta(Real s);
     Real zeta(Real s);
 
@@ -127,13 +124,6 @@ namespace functions {
     Real clamp(Real x, Real minVal, Real maxVal);
     Real lerp(Real a, Real b, Real t);
     Real fma(Real x, Real y, Real z);
-
-
-    // =====================================================
-    // ================= Dynamical Systems =================
-    // =====================================================
-
-    VecReal takens_map(const VecReal& signal, int dim, int tau);
 
     // ==============================================
     // ================= Fractals ===================
@@ -281,6 +271,42 @@ namespace functions {
         Real cdf(const Normal& d, Real x);
         Real quantile(const Normal& d, Real p);
         Real log_likelihood(const Normal& d, const VecReal& data);
+
+        Real pdf(const LogNormal& d, Real x);
+        Real cdf(const LogNormal& d, Real x);
+        Real quantile(const LogNormal& d, Real p);
+        Real log_likelihood(const LogNormal& d, const VecReal& data);
+
+        Real pdf(const Exponential& d, Real x);
+        Real cdf(const Exponential& d, Real x);
+        Real quantile(const Exponential& d, Real p);
+        Real log_likelihood(const Exponential& d, const VecReal& data);
+
+        Real pdf(const Gamma& d, Real x);
+        Real cdf(const Gamma& d, Real x);
+        Real quantile(const Gamma& d, Real p);
+        Real log_likelihood(const Gamma& d, const VecReal& data);
+
+        Real pdf(const Beta& d, Real x);
+        Real cdf(const Beta& d, Real x);
+        Real quantile(const Beta& d, Real p);
+        Real log_likelihood(const Beta& d, const VecReal& data);
+
+        Real pdf(const Weibull& d, Real x);
+        Real cdf(const Weibull& d, Real x);
+        Real quantile(const Weibull& d, Real p);
+        Real log_likelihood(const Weibull& d, const VecReal& data);
+
+        Real pdf(const Cauchy& d, Real x);
+        Real cdf(const Cauchy& d, Real x);
+        Real quantile(const Cauchy& d, Real p);
+        Real log_likelihood(const Cauchy& d, const VecReal& data);
+
+        Real pdf(const StudentT& d, Real x);
+        Real cdf(const StudentT& d, Real x);
+        Real quantile(const StudentT& d, Real p);
+        Real log_likelihood(const StudentT& d, const VecReal& data);
+
 
     } // namespace dist
 

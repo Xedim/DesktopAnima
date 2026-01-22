@@ -1,12 +1,13 @@
 //Constants.h
 #pragma once
 #include "Types.h"
-#include "../pattern/Pattern1D.h"
 
 namespace Constants {
 
     // ---------- General ----------
     constexpr Real PI = 3.14159265358979323846;
+    constexpr Real SQRT2  = 1.41421356237309504880;
+    constexpr Real SQRT_2PI = 2.50662827463100050242;
     constexpr Real E  = 2.71828182845904523536;
 
     constexpr Real H = 1e-5;                      // малое число для производных
@@ -64,7 +65,8 @@ namespace Constants {
     constexpr int L2_NORM_ITER = 10000;             // количество шагов для интегральной нормы
 
     // ---------- Output ranges ----------
-    constexpr Real WEIERSTRASS_Y_MAX = Pattern1D::geometric_sum(WEIERSTRASS_AMP_COEF, WEIERSTRASS_ITER);
+    //constexpr Real WEIERSTRASS_Y_MAX = Functions::geometric_sum(WEIERSTRASS_AMP_COEF, WEIERSTRASS_ITER);
+    constexpr Real WEIERSTRASS_Y_MAX = 100;
     constexpr Real WEIERSTRASS_Y_MIN = -WEIERSTRASS_Y_MAX;
 
     constexpr Real CANTOR_Y_MIN = 0.0;

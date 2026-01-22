@@ -2,17 +2,9 @@
 
 #include "Pattern1D.h"
 #include "PatternRegistry.h"
-#include <cmath>
-#include <vector>
+#include "PatternIdentity.h"
 
 namespace pattern1D {
-
-    enum class PatternID {
-        Sin,
-        Log,
-        Dirac,
-        _Count
-    };
 
     [[nodiscard]] constexpr const PatternDescriptor&
     descriptor(PatternID id) {
@@ -27,11 +19,6 @@ namespace pattern1D {
     [[nodiscard]] constexpr Interval
     range(PatternID id) {
         return descriptor(id).range;
-    }
-
-    [[nodiscard]] constexpr PatternKind
-    kind(PatternID id) {
-        return descriptor(id).kind;
     }
 
 } // namespace pattern1D
