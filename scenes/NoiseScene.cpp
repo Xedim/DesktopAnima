@@ -101,7 +101,7 @@ void NoiseScene::render() {
 void NoiseScene::initTrail() {
     glGenFramebuffers(2, trailFBO);
     glGenTextures(2, trailTex);
-d
+
     for (int i = 0; i < 2; ++i) {
         glBindTexture(GL_TEXTURE_2D, trailTex[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 1920, 1080, 0, GL_RGB, GL_FLOAT, nullptr);
