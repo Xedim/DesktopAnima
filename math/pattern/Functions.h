@@ -17,8 +17,8 @@ namespace Functions {
     Real combination(int n, int k);
     Real permutation(int n, int k);
     Real mod(Real x, Real y);
-    //Real polynomial(Real x, const VecReal& coefficients);
-    //Real rational(Real x, const VecReal& p, const VecReal& q);
+    Real polynomial(Real x, const VecReal& coefficients);
+    Real rational(Real x, const VecReal& p, const VecReal& q);
     Real sqrt(Real x);
     Real cbrt(Real x);
     Real sign(Real x);
@@ -146,9 +146,9 @@ namespace Functions {
     Real tent(Real x,
               StabPolicy policy = StabPolicy::Reject);
 
-    Complex julia(Complex z, Complex c);
+    Complex julia(const Complex& z, const Complex& c,  StabPolicy policy = StabPolicy::Reject);
 
-    bool escapes(Complex z0, Complex c, Real eps = Constants::JULIA_ITER, Real threshold = Constants::ESC_THRESHOLD);
+    bool escapes(Complex z0, Complex c, int max_iter, Real threshold = Constants::ESC_THRESHOLD);
 
     // =========================================
     // ================ Iterate ================

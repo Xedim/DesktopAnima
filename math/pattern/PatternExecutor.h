@@ -11,7 +11,7 @@
 namespace pattern {
 
     struct ExecutorUnified {
-        std::array<AnyFnVariant, static_cast<size_t>(PatternID::_Count)> registry{};
+        std::array<AnyFnVariant, static_cast<size_t>(PatternID::Count)> registry{};
 
         // -------------------------
         // Регистрация функции
@@ -30,8 +30,8 @@ namespace pattern {
 
             return std::visit([&]<typename Wrapped>(Wrapped&& wrapped) -> Result {
                 using FnType = std::decay_t<decltype(wrapped)>;
-                using Tuple   = FnType::args_tuple;
-                using Ret     = FnType::result_type;
+                using Tuple   = typename FnType::args_tuple;
+                using Ret     = typename FnType::result_type;
 
                 // Проверяем количество аргументов
                 constexpr size_t N = std::tuple_size_v<Tuple>;

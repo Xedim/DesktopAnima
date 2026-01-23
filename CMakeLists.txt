@@ -10,10 +10,6 @@ find_package(X11 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(Boost REQUIRED)
-find_package(Boost CONFIG REQUIRED COMPONENTS math_tr1 math_c99)
-
-add_definitions(-DSHADER_DIR="${CMAKE_SOURCE_DIR}/shaders/")
 
 add_executable(DesktopScenes
         main.cpp
@@ -25,6 +21,26 @@ add_executable(DesktopScenes
         gl/Shader.cpp
         gl/Quad.cpp
 )
+
+target_compile_definitions(DesktopScenes PRIVATE
+        SHADER_DIR="${CMAKE_SOURCE_DIR}/shaders/"
+)
+
+target_include_directories(DesktopScenes PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(DesktopScenes PRIVATE
+        MathCore
+        SDL2::SDL2
+        GLEW::GLEW
+        OpenGL::GL
+        X11::X11
+        X11::Xext
+)
+
+
+find_package(Boost CONFIG REQUIRED COMPONENTS math_tr1 math_c99)
 
 add_library(MathCore
         math/common/Types.h
@@ -40,20 +56,14 @@ add_library(MathCore
         math/pattern/Functions.cpp
 )
 
-target_include_directories(DesktopScenes PRIVATE
-        .
-        /usr/include
-)
-
-target_link_libraries(DesktopScenes PRIVATE
-        SDL2::SDL2
-        GLEW::GLEW
-        OpenGL::GL
-        X11::X11
-        X11::Xext
+target_link_libraries(MathCore PUBLIC
         Boost::boost
         Boost::math_tr1
         Boost::math_c99
+)
+
+target_include_directories(MathCore PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/math
 )
 
 
@@ -68,6 +78,29 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(testME
         tests/testME.cpp
+        tests/Functions/testAnalytics.cpp
+        tests/Functions/testAlgebra.cpp
+        tests/Functions/testExpLog.cpp
+        tests/Functions/testTrigonometric.cpp
+        tests/Functions/textHyperbolic.cpp
+        tests/Functions/testHybrid.cpp
+        tests/Functions/testSpecial.cpp
+        tests/Functions/testGeneralNumerical.cpp
+        tests/Functions/testFractals.cpp
+        tests/Functions/testIteration.cpp
+        tests/Functions/testStatDesc.cpp
+        tests/Functions/testStatShape.cpp
+        tests/Functions/testStatQuantile.cpp
+        tests/Functions/testStatRobust.cpp
+        tests/Functions/testStatCorrelations.cpp
+        tests/Functions/testStatDistributions.cpp
+        tests/Functions/testStatTests.cpp
+        tests/Functions/testStatInfo.cpp
+        tests/Functions/testStatCharacter.cpp
+        tests/Functions/testStatTimeSeries.cpp
+        tests/Functions/testStatSampling.cpp
+        tests/Functions/testStatRegression.cpp
+        tests/Functions/testOutliers.cpp
 )
 
 target_link_libraries(testME PRIVATE
