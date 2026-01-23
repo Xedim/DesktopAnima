@@ -104,38 +104,33 @@ void FlowScene::render() {
     ping = dst;
 }
 
-void FlowScene::nextVariant() {
-    int v = static_cast<int>(currentVariant);
-    v = (v + 1) % shaders.size();
-    currentVariant = static_cast<FlowVariant>(v);
-
+void FlowScene::resetTrail() {
     for (int i = 0; i < 2; ++i) {
         glBindFramebuffer(GL_FRAMEBUFFER, trailFBO[i]);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    params.time = 0.0f;
-}
 
-void FlowScene::prevVariant() {
-    int v = static_cast<int>(currentVariant);
-    v = (v - 1 + shaders.size()) % shaders.size();
-    currentVariant = static_cast<FlowVariant>(v);
-
-    for (int i = 0; i < 2; ++i) {
-        glBindFramebuffer(GL_FRAMEBUFFER, trailFBO[i]);
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    params.time = 0.0f;
-    params.seed = 0.0f;
     ping = 0;
 
     params.time = 0.0f;
     std::uniform_real_distribution<float> seedDist(0.0f, 1000.0f);
     params.seed = seedDist(rng);
+}
+
+void FlowScene::nextVariant() {
+    int v = (static_cast<int>(currentVariant) + 1) % shaders.size();
+    currentVariant = static_cast<FlowVariant>(v);
+
+    resetTrail();
+}
+
+void FlowScene::prevVariant() {
+    int v = (static_cast<int>(currentVariant) - 1 + shaders.size()) % shaders.size();
+    currentVariant = static_cast<FlowVariant>(v);
+
+    resetTrail();
 }
 
 void FlowScene::onKey(SDL_Keycode key) {

@@ -17,20 +17,18 @@ namespace Functions {
     Real combination(int n, int k);
     Real permutation(int n, int k);
     Real mod(Real x, Real y);
-    Real geometric_sum(Real a, int N);
-    Real polynomial(Real x, const VecReal& coefficients);
-    Real rational(Real x, const VecReal& p, const VecReal& q);
-    Real algebraic_root(Real x, const VecReal& coefficients);
+    //Real polynomial(Real x, const VecReal& coefficients);
+    //Real rational(Real x, const VecReal& p, const VecReal& q);
     Real sqrt(Real x);
     Real cbrt(Real x);
+    Real sign(Real x);
+    Real abs(Real x);
 
     // =======================================================
     // ================= Power / Exponential =================
     // =======================================================
 
     Real pow(Real x, Real alpha);
-    Real sign(Real x);
-    Real abs(Real x);
     Real exp(Real x);
     Real exp2(Real x);
     Real expm1_safe(Real x);
@@ -77,7 +75,7 @@ namespace Functions {
     Real atanh(Real x);
 
     // ======================================================
-    // ================= Hybrid / Numerical =================
+    // ===================== Hybrid =========================
     // ======================================================
 
     Real x_pow_y(Real x, Real y);
@@ -112,9 +110,11 @@ namespace Functions {
     // ===============================================
 
     Real dirac_delta(Real x, Real eps = 1e-3);
+    Real geometric_sum(Real a, int N);
+    Real algebraic_root(Real x, const VecReal& coefficients);
 
     // ====================================================
-    // ================= Numerical / Misc =================
+    // ==================== Numerical =====================
     // ====================================================
 
     Real round(Real x);
@@ -148,7 +148,7 @@ namespace Functions {
 
     Complex julia(Complex z, Complex c);
 
-    bool escapes(Complex z0, Complex c, Real eps = Constants::JULIA_ITER, Real threshold = Constants::ESC_TRESHOLD);
+    bool escapes(Complex z0, Complex c, Real eps = Constants::JULIA_ITER, Real threshold = Constants::ESC_THRESHOLD);
 
     // =========================================
     // ================ Iterate ================
@@ -296,7 +296,7 @@ namespace Functions {
     // ==========================================================
 
     Complex normal_characteristic(Real t, Real mu, Real sigma);
-    Complex characteristic_from_samples(const VecReal& samples, Real t);
+    Complex samples_characteristic(const VecReal& samples, Real t);
 
     // ==========================================================
     // ================= Time Series Statistics =================

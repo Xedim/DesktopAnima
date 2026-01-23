@@ -96,20 +96,8 @@ struct Interval {
     Real min;
     Real max;
 
-    constexpr bool contains(Real x) const {
-        return x >= min && x <= max;
-    }
-};
-
-// -------------------------
-// Сигнатуры функций
-// -------------------------
-
-enum class PatternSignature {
-    UnaryReal,   // f(x)
-    VecReal,     // f(vec)
-    IntInt       // f(int,int)
-    // В дальнейшем можно добавить: Complex, VecComplex, Mixed
+    constexpr Interval(Real a, Real b) : min(a), max(b) {}
+    [[nodiscard]] constexpr bool contains(Real x) const { return x >= min && x <= max; }
 };
 
 // -------------------------
@@ -118,20 +106,23 @@ enum class PatternSignature {
 
 enum class PatternKind {
     Algebra,
-    Trigonometric,
-    Logarithmic,
     Power,
+    Logarithmic,
+    Trigonometric,
     Hyperbolic,
-    Statistical,
-    Fractal,
-    HybridNumerical,
+    Hybrid,
     Special,
-    Probability,
-    Regression,
-    TimeSeries,
-    OutlierDetection,
+    Generalized,
+    Numerical,
+    Fractal,
+    Iteration,
+    Statistical,
+    Distributional,
     Information,
-    CharacteristicFunction
+    TimeSeries,
+    Sampling,
+    Regression,
+    Outliers,
 };
 
 // -------------------------
@@ -175,11 +166,9 @@ enum class FunctionGroup {
 
 struct PatternDescriptor {
     const char* name;
-    PatternSignature signature;
-    PatternKind kind;
-    FunctionGroup group;
     Interval domain;
     Interval range;
+    PatternKind kind;
 };
 
 // -------------------------

@@ -68,31 +68,14 @@ namespace Functions {
         return r;
     }
 
-
-    [[nodiscard]] Real geometric_sum(Real a, int N) noexcept {
-        if (N <= 0) return Real{0};
-        if (a == Real{1}) return static_cast<Real>(N);
-
-        Real sum = Real{0};
-        Real term = Real{1};
-        for (int i = 0; i < N; ++i) {
-            sum += term;
-            term *= a;
-        }
-        return sum;
-    }
-
-    [[nodiscard]] Real algebraic_root(Real x, const VecReal& coefficients) {
-        Real poly = Real{0};
-        for (auto it = coefficients.rbegin(); it != coefficients.rend(); ++it)
-            poly = poly * x + *it;
-
-        if (poly < 0) return NaN();
-        return std::sqrt(poly);
-    }
-
     [[nodiscard]] Real sqrt(Real x) { return x < Real{0} ? NaN() : std::sqrt(x); }
     [[nodiscard]] Real cbrt(Real x) { return std::cbrt(x); }
+
+    [[nodiscard]] inline Real sign(Real x) {
+        return (x > 0) ? Real{1} : (x < 0 ? Real{-1} : Real{0});
+    }
+
+    [[nodiscard]] Real abs(Real x) { return std::abs(x); }
 
     // =======================================================
     // ================= Power / Exponential =================
@@ -130,12 +113,6 @@ namespace Functions {
         if (x < 0.0 && std::floor(alpha) != alpha) return NaN();
         return std::pow(x, alpha);
     }
-
-    [[nodiscard]] inline Real sign(Real x) {
-        return (x > 0) ? Real{1} : (x < 0 ? Real{-1} : Real{0});
-    }
-
-    [[nodiscard]] Real abs(Real x) { return std::abs(x); }
 
     [[nodiscard]] Real exp(Real x) {
         if (x > 700.0) return std::numeric_limits<Real>::infinity();
@@ -446,6 +423,28 @@ namespace Functions {
         if (x * x > threshold) return Real{0};
         const Real invSqrtPiEps = 1.0 / std::sqrt(Constants::PI * eps);
         return std::exp(-x * x / eps) * invSqrtPiEps;
+    }
+
+    [[nodiscard]] Real geometric_sum(Real a, int N) noexcept {
+        if (N <= 0) return Real{0};
+        if (a == Real{1}) return static_cast<Real>(N);
+
+        Real sum = Real{0};
+        Real term = Real{1};
+        for (int i = 0; i < N; ++i) {
+            sum += term;
+            term *= a;
+        }
+        return sum;
+    }
+
+    [[nodiscard]] Real algebraic_root(Real x, const VecReal& coefficients) {
+        Real poly = Real{0};
+        for (auto it = coefficients.rbegin(); it != coefficients.rend(); ++it)
+            poly = poly * x + *it;
+
+        if (poly < 0) return NaN();
+        return std::sqrt(poly);
     }
 
     // ====================================================
@@ -1547,7 +1546,7 @@ namespace Functions {
         return std::exp(Complex(-0.5 * sigma * sigma * t * t, mu * t));
     }
 
-    inline Complex characteristic_from_samples(const std::vector<double>& samples, double t) {
+    inline Complex samples_characteristic(const std::vector<double>& samples, double t) {
         Complex sum{0.0, 0.0};
         for (double x : samples)
             sum += std::exp(Complex{0.0, t * x});

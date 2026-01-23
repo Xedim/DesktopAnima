@@ -28,7 +28,7 @@ struct FlowParams {
     glm::vec3 color  = {0.0f, 0.0f, 0.0f};
 };
 
-struct updatingParams {
+struct updatingFlowParams {
     //RGB
     float r_level       = 0.5f;
     float r_amplitude   = 0.5f;
@@ -72,6 +72,7 @@ class FlowScene : public Scene {
         void update(float dt) override;
         void render() override;
         void initTrail(int width, int height);
+        void resetTrail();
         void nextVariant();
         void prevVariant();
         void onKey(SDL_Keycode key) override
@@ -82,7 +83,7 @@ class FlowScene : public Scene {
         std::unique_ptr<Quad> quad;
 
         FlowParams params;
-        updatingParams up;
+        updatingFlowParams up;
         FlowVariant currentVariant = FlowVariant::Flow;
         std::unordered_map<FlowVariant, std::unique_ptr<Shader>> shaders;
 

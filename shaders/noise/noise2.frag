@@ -12,7 +12,7 @@ uniform int u_octaves;     // число октав
 uniform float u_speed;     // скорость анимации
 uniform float u_ampFactor; // уменьшение амплитуды для каждой октавы
 //uniform int u_pattern;     // выбор паттерна
-int u_pattern = 7;
+int u_pattern = 1;
 // -----------------------
 
 // --- хэш / базовый шум ---
@@ -67,7 +67,7 @@ float patternValue(vec2 uv, float t) {
 
 // --- Главная функция ---
 void main() {
-    vec2 p = v_uv * u_scale;
+    vec2 p = (v_uv - 0.5) * u_scale;
     float t = u_time * u_speed;
 
     float n = 0.0;
