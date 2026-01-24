@@ -3,14 +3,8 @@
 #include <cmath>
 #include <random>
 #include "../../math/pattern/Functions.h"
-#include "../../math/common/Constants.h"
+#include "../math/common/Types.h"
 
-constexpr Real EPS = 1e-9;
-
-// генератор случайных чисел
-std::mt19937 rng(42);
-std::uniform_real_distribution<Real> dist_real(-100.0, 100.0);
-std::uniform_int_distribution<int> dist_int(0, 20);
 
 // ---------- Factorial / Binomial / Permutation ----------
 TEST(AlgebraicDynamic, FactorialBinomialPermutation) {
@@ -61,7 +55,7 @@ TEST(AlgebraicDynamic, PolynomialRational) {
         VecReal den = coeffs;
         den[0] += 1.0; // гарантируем не ноль
         Real r = Functions::rational(x, coeffs, den);
-        EXPECT_NEAR(r * Functions::polynomial(x, den), Functions::polynomial(x, coeffs), EPS);
+        EXPECT_DOUBLE_EQ(Functions::polynomial(x, coeffs), r * Functions::polynomial(x, den));
     }
 }
 
@@ -74,11 +68,11 @@ TEST(AlgebraicDynamic, RootSignAbs) {
         if (x < 0) {
             EXPECT_TRUE(std::isnan(Functions::sqrt(x)));
         } else {
-            EXPECT_NEAR(std::pow(Functions::sqrt(x), 2), x, EPS);
+            EXPECT_NEAR(std::pow(Functions::sqrt(x), 2), x, Constants::EPS_09);
         }
 
         // cbrt
-        EXPECT_NEAR(std::pow(Functions::cbrt(x), 3), x, EPS);
+        EXPECT_NEAR(std::pow(Functions::cbrt(x), 3), x, Constants::EPS_09);
 
         // sign
         if (x > 0) EXPECT_DOUBLE_EQ(Functions::sign(x), 1);

@@ -24,19 +24,19 @@ namespace Analytics {
 
     // ---------------- Properties ----------------
 
-    bool isEvenFunction(const Function1D& f, Real x, Real eps = Constants::EPS,
+    bool isEvenFunction(const Function1D& f, Real x, Real eps = Constants::EPS_09,
                         StabPolicy policy = StabPolicy::Reject);
 
-    bool isOddFunction(const Function1D& f, Real x, Real eps = Constants::EPS,
+    bool isOddFunction(const Function1D& f, Real x, Real eps = Constants::EPS_09,
                         StabPolicy policy = StabPolicy::Reject);
 
-    bool isPeriodic(const Function1D& f, Real x, Real T, Real eps = Constants::EPS,
+    bool isPeriodic(const Function1D& f, Real x, Real T, Real eps = Constants::EPS_09,
                         StabPolicy policy = StabPolicy::Reject);
 
-    bool isIncreasing(const Function1D& f, Real x1, Real x2, Real eps = Constants::EPS,
+    bool isIncreasing(const Function1D& f, Real x1, Real x2, Real eps = Constants::EPS_09,
                         StabPolicy policy = StabPolicy::Reject);
 
-    bool isDecreasing(const Function1D& f, Real x1, Real x2, Real eps = Constants::EPS,
+    bool isDecreasing(const Function1D& f, Real x1, Real x2, Real eps = Constants::EPS_09,
                         StabPolicy policy = StabPolicy::Reject);
 
     bool isFiniteAt(const Function1D& f, Real x, StabPolicy policy = StabPolicy::Reject);

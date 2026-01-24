@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include "../../math/pattern/Functions.h"
+#include "../../math/common/Types.h"
 #include <boost/math/special_functions/lambert_w.hpp> // used by Functions::lambert_w
 
 // ---------------- erf / erfc ----------------
 struct ErfTestCase {
-    double x;
-    double expected_erf;
-    double expected_erfc;
+    Real x;
+    Real expected_erf;
+    Real expected_erfc;
 };
 
 class Special_Erf : public ::testing::TestWithParam<ErfTestCase> {};
@@ -31,8 +32,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 // ---------------- gamma / lgamma ----------------
 struct GammaTestCase {
-    double x;
-    double expected;
+    Real x;
+    Real expected;
     bool expect_nan = false;
 };
 
@@ -40,7 +41,7 @@ class Special_TGamma : public ::testing::TestWithParam<GammaTestCase> {};
 
 TEST_P(Special_TGamma, TgammaValues) {
     const auto& tc = GetParam();
-    double result = Functions::gamma(tc.x);
+    Real result = Functions::gamma(tc.x);
     if(tc.expect_nan) EXPECT_TRUE(std::isnan(result));
     else EXPECT_NEAR(result, tc.expected, 1e-12);
 }
@@ -61,7 +62,7 @@ class Special_LGamma : public ::testing::TestWithParam<GammaTestCase> {};
 
 TEST_P(Special_LGamma, LgammaValues) {
     const auto& tc = GetParam();
-    double result = Functions::lgamma(tc.x);
+    Real result = Functions::lgamma(tc.x);
     if(tc.expect_nan) EXPECT_TRUE(std::isnan(result));
     else EXPECT_NEAR(result, tc.expected, 1e-12);
 }
@@ -80,9 +81,9 @@ INSTANTIATE_TEST_SUITE_P(
 
 // ---------------- beta ----------------
 struct BetaTestCase {
-    double x;
-    double y;
-    double expected;
+    Real x;
+    Real y;
+    Real expected;
     bool expect_nan = false;
 };
 
@@ -90,7 +91,7 @@ class Special_Beta : public ::testing::TestWithParam<BetaTestCase> {};
 
 TEST_P(Special_Beta, Values) {
     const auto& tc = GetParam();
-    double result = Functions::beta(tc.x, tc.y);
+    Real result = Functions::beta(tc.x, tc.y);
     if(tc.expect_nan) EXPECT_TRUE(std::isnan(result));
     else EXPECT_NEAR(result, tc.expected, 1e-12);
 }
@@ -108,8 +109,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 // ---------------- lambert_w ----------------
 struct LambertWTestCase {
-    double x;
-    double expected;
+    Real x;
+    Real expected;
     bool expect_nan = false;
 };
 
@@ -117,7 +118,7 @@ class Special_LambertW : public ::testing::TestWithParam<LambertWTestCase> {};
 
 TEST_P(Special_LambertW, Values) {
     const auto& tc = GetParam();
-    double result = Functions::lambert_w(tc.x);
+    Real result = Functions::lambert_w(tc.x);
     if(tc.expect_nan) EXPECT_TRUE(std::isnan(result));
     else EXPECT_NEAR(result, tc.expected, 1e-12);
 }

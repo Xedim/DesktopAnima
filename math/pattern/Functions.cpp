@@ -1,5 +1,7 @@
 //Functions.cpp
 
+#include "Functions.h"
+
 #include "../common/Utils.h"
 #include "../common/Constants.h"
 #include <boost/math/special_functions/bessel.hpp>
@@ -488,113 +490,149 @@ namespace Functions {
     // ================= Fractals ===================
     // ==============================================
 
-    [[nodiscard]] Real weierstrass(Real x, Real a, Real b, int N, StabPolicy policy) {
+    [[nodiscard]] Real weierstrass(Real x, Real a, Real b, int N, StabPolicy policy)
+    {
         if (a <= Constants::WEIERSTRASS_AMP_MIN || a >= Constants::WEIERSTRASS_AMP_MAX ||
             b <= Constants::WEIERSTRASS_FREQ_MIN ||
             N <= Constants::WEIERSTRASS_ITER_MIN ||
-            x <  Constants::WEIERSTRASS_X_MIN ||
-            x >  Constants::WEIERSTRASS_X_MAX)
-        {
+            x < Constants::WEIERSTRASS_X_MIN ||
+            x > Constants::WEIERSTRASS_X_MAX)
             return NaN();
-        }
 
-        Real sum = 0.0;
-        Real amp_factor = 1.0;
-        Real freq_factor = 1.0;
         const Real pi_x = Constants::PI * x;
 
-        for (int n = 0; n < N; ++n) {
-            Real term = amp_factor * std::cos(freq_factor * pi_x);
-            term = Utils::checkStability(term,
-                                        Constants::WEIERSTRASS_Y_MIN,
-                                        Constants::WEIERSTRASS_Y_MAX,
-                                           policy);
+        auto f = [=](const WeierState& s) -> WeierState {
+            Real term = s.amp * std::cos(s.freq * pi_x);
 
-            if (!std::isfinite(term)) break;
+            term = Utils::checkStability(
+                term,
+                Constants::WEIERSTRASS_Y_MIN,
+                Constants::WEIERSTRASS_Y_MAX,
+                policy
+            );
 
-            sum += term;
-            amp_factor *= a;
-            freq_factor *= b;
+            if (!std::isfinite(term))
+                return WeierState{NaN(), NaN(), NaN()};
 
-            amp_factor = Utils::checkStability(amp_factor,
-                                              Constants::NEG_LIMIT,
-                                              Constants::POS_LIMIT,
-                                                 policy);
-            freq_factor = Utils::checkStability(freq_factor,
-                                               Constants::NEG_LIMIT,
-                                               Constants::POS_LIMIT,
-                                                  policy);
-            if (!std::isfinite(amp_factor) || !std::isfinite(freq_factor)) break;
-        }
+            return {
+                s.sum + term,
+                s.amp * a,
+                s.freq * b
+            };
+        };
 
-        return Utils::checkStability(sum,
-                                    Constants::WEIERSTRASS_Y_MIN,
-                                    Constants::WEIERSTRASS_Y_MAX,
-                                       policy);
+        WeierState init{0.0, 1.0, 1.0};
 
-        return sum;
+        auto res = Functions::iterate<WeierState>(
+            init,
+            f,
+            N
+        );
+
+        return Utils::checkStability(
+            res.sum,
+            Constants::WEIERSTRASS_Y_MIN,
+            Constants::WEIERSTRASS_Y_MAX,
+            policy
+        );
     }
 
-    [[nodiscard]] Real cantor(Real x, int max_iter, StabPolicy policy) {
+    [[nodiscard]] Real cantor(Real x, int max_iter, StabPolicy policy)
+    {
         if (x < Constants::CANTOR_X_MIN || x > Constants::CANTOR_X_MAX ||
             max_iter <= Constants::CANTOR_ITER_MIN)
-        {
             return NaN();
-        }
 
-        Real result = 0.0;
-        Real scale_factor = 1.0;
-
-        for (int i = 0; i < max_iter; ++i) {
-            if (x < Constants::CANTOR_LEFT) {
-                x *= Constants::CANTOR_SCALE;
-            } else if (x > Constants::CANTOR_RIGHT) {
-                result += scale_factor;
-                x = Constants::CANTOR_SCALE * x - Constants::CANTOR_RIGHT_SCALE;
-            } else {
-                Real final_val = result + scale_factor * Constants::CANTOR_MID;
-                return Utils::checkStability(final_val, Constants::CANTOR_Y_MIN, Constants::CANTOR_Y_MAX, policy);
+        auto f = [](const CantorState& s) {
+            if (s.x < Constants::CANTOR_LEFT) {
+                return CantorState{
+                    s.x * Constants::CANTOR_SCALE,
+                    s.result,
+                    s.scale * Constants::CANTOR_FACTOR
+                };
             }
 
-            scale_factor = Utils::checkStability(scale_factor * Constants::CANTOR_FACTOR,
-                                                Constants::NEG_LIMIT,
-                                                Constants::POS_LIMIT,
-                                                   policy);
-            if (!std::isfinite(scale_factor)) break;
-        }
+            if (s.x > Constants::CANTOR_RIGHT) {
+                return CantorState{
+                    Constants::CANTOR_SCALE * s.x - Constants::CANTOR_RIGHT_SCALE,
+                    s.result + s.scale,
+                    s.scale * Constants::CANTOR_FACTOR
+                };
+            }
 
-        return Utils::checkStability(result, Constants::CANTOR_Y_MIN, Constants::CANTOR_Y_MAX, policy);
+            return CantorState{
+                s.x,
+                s.result + s.scale * 0.5,
+                0.0
+            };
+        };
+
+        CantorState init{x, 0.0, 1.0};
+
+        auto res = Functions::iterate<CantorState>(
+            init,
+            f,
+            max_iter
+        );
+
+        return Utils::checkStability(
+            res.result,
+            Constants::CANTOR_Y_MIN,
+            Constants::CANTOR_Y_MAX,
+            policy
+        );
     }
 
-    [[nodiscard]] Real logistic(Real x, Real r, StabPolicy policy) {
+    [[nodiscard]] Real logistic(Real x, Real r, int n, StabPolicy policy) {
         if (x < Constants::LOGISTIC_X_MIN || x > Constants::LOGISTIC_X_MAX ||
             r <= Constants::LOGISTIC_R_MIN || r >= Constants::LOGISTIC_R_MAX)
-        {
             return NaN();
-        }
 
-        Real y = r * x * (1.0 - x);
-        return Utils::checkStability(y, Constants::LOGISTIC_Y_MIN, Constants::LOGISTIC_Y_MAX, policy);
+        auto f = [r](Real x) {
+            return r * x * (Real{1} - x);
+        };
+
+        return Functions::iterate(
+            x,
+            f,
+            n
+        );
     }
 
-    [[nodiscard]] Real tent(Real x, StabPolicy policy) {
-        if (x < Constants::TENT_X_MIN || x > Constants::TENT_X_MAX) return NaN();
+    [[nodiscard]] Real tent(Real x, int n, StabPolicy policy) {
+        if (x < Constants::TENT_X_MIN || x > Constants::TENT_X_MAX)
+            return NaN();
 
-        Real result = (x < Constants::TENT_PEAK)
-                    ? Constants::TENT_SLOPE * x
-                    : Constants::TENT_SLOPE * (1.0 - x);
+        auto f = [](Real x) {
+            return (x < Constants::TENT_PEAK)
+                 ? Constants::TENT_SLOPE * x
+                 : Constants::TENT_SLOPE * (Real{1} - x);
+        };
 
-        return Utils::checkStability(result, Constants::TENT_Y_MIN, Constants::TENT_Y_MAX, policy);
+        return Functions::iterate<Real>(
+            x,
+            f,
+            n
+        );
     }
 
-    [[nodiscard]] Complex julia(const Complex& z, const Complex& c, StabPolicy policy) {
-        Complex z_iter = z;
-        for (int i = 0; i < Constants::JULIA_ITER; ++i)
-            z_iter = z_iter * z_iter + c;
-        return Utils::checkStability(z_iter, Constants::NEG_LIMIT, Constants::POS_LIMIT, policy);
+    [[nodiscard]] Complex julia(const Complex& z0,
+                                const Complex& c,
+                                int n,
+                                StabPolicy policy)
+    {
+        auto f = [c](Complex z) {
+            return z * z + c;
+        };
+
+        return Functions::iterate<Complex>(
+            z0,
+            f,
+            n
+        );
     }
 
-    [[nodiscard]] bool escapes(Complex z0, Complex c, int max_iter, Real threshold = Constants::ESC_THRESHOLD) {
+    [[nodiscard]] bool escapes(Complex z0, Complex c, int max_iter, Real threshold) {
         if (max_iter <= 0 || threshold <= Real{0}) return false;
         if (!Utils::isFiniteNum(z0) || !Utils::isFiniteNum(c)) return false;
 
@@ -619,39 +657,16 @@ namespace Functions {
         return false;
     }
 
-    // =========================================
-    // ================ Iterate ================
-    // =========================================
-
-    template<typename T, typename MapFunc>
-    [[nodiscard]] T iterate(T x, MapFunc&& f, int n,
-                            Real lo = Constants::NEG_LIMIT,
-                            Real hi = Constants::POS_LIMIT,
-                            StabPolicy policy = StabPolicy::Reject)
-    {
-        for (int i = 0; i < n; ++i) {
-            x = f(x);
-            x = Utils::checkStability(x, lo, hi, policy);
-            if constexpr (std::is_same_v<T, Real>) {
-                if (!std::isfinite(x)) return NaN();
-            } else if constexpr (std::is_same_v<T, Complex>) {
-                if (!std::isfinite(x.real()) || !std::isfinite(x.imag()))
-                    return {NaN(), NaN()};
-            }
-        }
-        return x;
-    }
-
     // ==========================================================
     // ================= Descriptive Statistics =================
     // ==========================================================
 
     Real sum(const VecReal& x) {
-        return std::accumulate(x.begin(), x.end(), Real{0});
+        return x.empty() ? NaN() : std::accumulate(x.begin(), x.end(), Real{0});
     }
 
     Real mean(const VecReal& x) {
-        return x.empty() ? NaN() : sum(x) / static_cast<Real>(x.size());
+        return sum(x) / static_cast<Real>(x.size());
     }
 
     Real median(VecReal x) {
@@ -835,52 +850,26 @@ namespace Functions {
 
     Real quantile(VecReal x, Real q) {
         const std::size_t n = x.size();
-        if (n == 0 || q < 0 || q > 1) return NaN();
+        if (n == 0 || q < 0 || q > 1) return std::numeric_limits<Real>::quiet_NaN();
 
-        const Real pos = q * static_cast<Real>(n - 1);
+        std::ranges::sort(x.begin(), x.end());
+        const Real pos = q * (static_cast<Real>(n) - 1);
         const auto i = static_cast<std::size_t>(pos);
         const Real frac = pos - static_cast<Real>(i);
 
-        using Diff = std::vector<Real>::difference_type;
+        if (frac == 0.0 || i + 1 == n)
+            return x[i];
 
-        auto it_i = x.begin() + static_cast<Diff>(i);
-        std::ranges::nth_element(x, it_i);
-        const Real a = *it_i;
-
-        if (frac == Real{0} || i + 1 == n)
-            return a;
-
-        auto it_i1 = x.begin() + static_cast<Diff>(i + 1);
-        std::ranges::nth_element(x, it_i1);
-        const Real b = *it_i1;
-
-        return a + frac * (b - a);
+        return x[i] + frac * (x[i+1] - x[i]);
     }
 
     Real percentile(VecReal x, Real p) {
         return quantile(std::move(x), p * Real{0.01});
     }
 
-    Quartiles quartiles(VecReal x) {
-        const std::size_t n = x.size();
-        if (n == 0) return { NaN(), NaN(), NaN() };
-
-        const std::size_t i1 = (n - 1) / 4;
-        const std::size_t i2 = (n - 1) / 2;
-        const std::size_t i3 = 3 * (n - 1) / 4;
-
-        using Diff = VecReal::difference_type;
-
-        std::ranges::nth_element(x.begin(), x.begin() + static_cast<Diff>(i2), x.end());
-        const Real q2 = x[i2];
-
-        std::ranges::nth_element(x.begin(), x.begin() + static_cast<Diff>(i1), x.begin() + static_cast<Diff>(i2));
-        const Real q1 = x[i1];
-
-        std::ranges::nth_element(x.begin() + static_cast<Diff>(i2) + 1, x.begin() + static_cast<Diff>(i3), x.end());
-        const Real q3 = x[i3];
-
-        return { q1, q2, q3 };
+    Quartiles quartiles(const VecReal& x) {
+        if (x.empty()) return { NaN(), NaN(), NaN() };
+        return { quantile(x, 0.25), quantile(x, 0.5), quantile(x, 0.75) };
     }
 
     Real iqr(VecReal x) {
@@ -890,20 +879,18 @@ namespace Functions {
 
     Real trimmed_mean(VecReal x, Real alpha) {
         const std::size_t n = x.size();
-        if (n == 0 || alpha < 0 || alpha >= Real{0.5}) return NaN();
+        if (n == 0 || alpha < 0 || alpha >= 0.5) return std::numeric_limits<Real>::quiet_NaN();
+
+        std::ranges::sort(x.begin(), x.end());
 
         const auto k = static_cast<std::size_t>(static_cast<Real>(n) * alpha);
         const std::size_t lo = k;
         const std::size_t hi = n - k;
 
+        if (hi <= lo) return std::numeric_limits<Real>::quiet_NaN();
+
         using Diff = VecReal::difference_type;
-        std::ranges::nth_element(x.begin(), x.begin() + static_cast<Diff>(lo), x.end());
-        std::ranges::nth_element(x.begin() + static_cast<Diff>(lo), x.begin() + static_cast<Diff>(hi), x.end());
-
-        Real acc = 0;
-        for (std::size_t i = lo; i < hi; ++i)
-            acc += x[i];
-
+        Real acc = std::accumulate(x.begin() + static_cast<Diff>(lo), x.begin() + static_cast<Diff>(hi), Real{0});
         return acc / static_cast<Real>(hi - lo);
     }
 
@@ -1046,20 +1033,29 @@ namespace Functions {
         const std::size_t n = x.size();
         if (n != y.size() || n < 2) return NaN();
 
-        std::vector<std::size_t> ix(n), iy(n);
-        std::iota(ix.begin(), ix.end(), 0);
-        std::iota(iy.begin(), iy.end(), 0);
+        auto rank = [&](const VecReal& v) {
+            std::vector<std::size_t> idx(n);
+            std::iota(idx.begin(), idx.end(), 0);
 
-        std::ranges::sort(ix, [&](auto a, auto b) { return x[a] < x[b]; });
-        std::ranges::sort(iy, [&](auto a, auto b) { return y[a] < y[b]; });
+            std::ranges::sort(idx, [&](auto a, auto b) {
+                return v[a] < v[b];
+            });
 
-        VecReal rx(n), ry(n);
-        for (std::size_t i = 0; i < n; ++i) {
-            rx[ix[i]] = static_cast<Real>(i);
-            ry[iy[i]] = static_cast<Real>(i);
-        }
+            VecReal r(n);
+            for (std::size_t i = 0; i < n;) {
+                std::size_t j = i;
+                while (j < n && v[idx[i]] == v[idx[j]]) ++j;
 
-        return correlation_pearson(rx, ry);
+                const Real avg = (static_cast<Real>(i) + static_cast<Real>(j - 1)) / 2;
+                for (std::size_t k = i; k < j; ++k)
+                    r[idx[k]] = avg;
+
+                i = j;
+            }
+            return r;
+        };
+
+        return correlation_pearson(rank(x), rank(y));
     }
 
     Real correlation_kendall(const VecReal& x, const VecReal& y) {
@@ -1073,12 +1069,14 @@ namespace Functions {
                 const Real dx = x[i] - x[j];
                 const Real dy = y[i] - y[j];
                 const Real p = dx * dy;
-                concordant += static_cast<Real>(p > 0);
-                discordant += static_cast<Real>(p < 0);
+
+                concordant += (p > 0);
+                discordant += (p < 0);
             }
         }
+
         const Real total = concordant + discordant;
-        return total > Real{0} ? (concordant - discordant) / total : NaN();
+        return total > 0 ? (concordant - discordant) / total : NaN();
     }
 
     Real autocovariance(const VecReal& x, int lag) {
@@ -1132,7 +1130,7 @@ namespace Functions {
                 acc += (x[i + L] - mx) * (y[i] - my);
         }
 
-        return acc / static_cast<Real>(n - L);
+        return acc / static_cast<Real>(n - L) / std::sqrt(variance(x) * variance(y));
     }
 
     // ==========================================================
@@ -1443,7 +1441,7 @@ namespace Functions {
         return (mx - my) / std::sqrt(vx / static_cast<Real>(x.size()) + vy / static_cast<Real>(y.size()));
     }
 
-    // Mann-Whitney U оптимизирован через вложенные циклы без временных массивов
+    // Mann-Whitney U
     inline Real mann_whitney_u(const VecReal& x, const VecReal& y) {
         if (x.empty() || y.empty()) return NaN();
         Real u = 0;
@@ -1465,7 +1463,7 @@ namespace Functions {
         std::ranges::sort(d);
         Real sum = 0;
         for (std::size_t i = 0; i < d.size(); ++i)
-            sum += static_cast<Real>(i) + 1; // ранги
+            sum += static_cast<Real>(i) + 1;
         return sum;
     }
 
@@ -1500,7 +1498,7 @@ namespace Functions {
         return chi2;
     }
 
-    // Anderson-Darling (для нормального распределения)
+    // Anderson-Darling
     inline Real anderson_darling(const VecReal& x) {
         if (x.size() < 2) return NaN();
         VecReal xs = x;
@@ -1799,12 +1797,6 @@ namespace Functions {
     // ==========================================================
     // ================= Regression & Estimation ================
     // ==========================================================
-
-    struct LinearRegressionResult {
-        Real slope = NaN();
-        Real intercept = NaN();
-        Real r2 = NaN();
-    };
 
     inline LinearRegressionResult linear_regression(const VecReal& x, const VecReal& y) {
         if (x.size() != y.size() || x.empty()) return {};

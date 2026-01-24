@@ -5,6 +5,7 @@
 #include <functional>
 #include <limits>
 #include <variant>
+#include <random>
 
 
 using Real = double;
@@ -15,6 +16,34 @@ using VecComplex = std::vector<Complex>;
 
 using Function1D = std::function<Real(Real)>;
 using Function2D = std::function<Real(Real, Real)>;
+
+// -------------------------
+// Генератор случайных чисел
+// -------------------------
+std::random_device inline rd;
+std::mt19937 inline rng(rd());
+std::uniform_real_distribution<Real> inline dist_real(-100.0, 100.0);
+std::uniform_int_distribution<int> inline dist_int(0, 20);
+
+// -------------------------
+// Общие конструкты
+// -------------------------
+
+inline Real NaN() noexcept {
+    return std::numeric_limits<Real>::quiet_NaN();
+}
+
+struct WeierState {
+    Real sum;
+    Real amp;
+    Real freq;
+};
+
+struct CantorState {
+    Real x;
+    Real result;
+    Real scale;
+};
 
 struct Normal {
     Real mu;
@@ -57,11 +86,10 @@ struct StudentT {
 struct Quartiles { Real q1, q2, q3; };
 
 struct LinearRegressionResult {
-    Real slope;
-    Real intercept;
-    Real r2;
+    Real slope = NaN();
+    Real intercept = NaN();
+    Real r2 = NaN();
 };
-
 
 // -------------------------
 // Политики стабильности
@@ -79,14 +107,6 @@ enum class StabPolicy {
 
 using PDF = std::function<Real(Real)>;
 using CDF = std::function<Real(Real)>;
-
-// -------------------------
-// Общие константы
-// -------------------------
-
-inline Real NaN() noexcept {
-    return std::numeric_limits<Real>::quiet_NaN();
-}
 
 // -------------------------
 // Интервалы

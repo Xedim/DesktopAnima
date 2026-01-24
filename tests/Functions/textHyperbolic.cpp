@@ -1,17 +1,18 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include "../../math/pattern/Functions.h"
+#include "../../math/common/Types.h"
 #include <limits>
 
 // ---------------- Valid core values ----------------
 struct HyperbolicTestCase {
-    double input;
-    double expected_sinh;
-    double expected_cosh;
-    double expected_tanh;
-    double expected_asinh;
-    double expected_acosh;
-    double expected_atanh;
+    Real input;
+    Real expected_sinh;
+    Real expected_cosh;
+    Real expected_tanh;
+    Real expected_asinh;
+    Real expected_acosh;
+    Real expected_atanh;
 };
 
 class CoreValues_HyperbolicDynamic : public ::testing::TestWithParam<HyperbolicTestCase> {};
@@ -37,10 +38,10 @@ TEST_P(CoreValues_HyperbolicDynamic, CoreValues) {
 }
 
 // ---------------- Invalid / extreme values ----------------
-class HyperbolicInvalid : public ::testing::TestWithParam<double> {};
+class HyperbolicInvalid : public ::testing::TestWithParam<Real> {};
 
 TEST_P(HyperbolicInvalid, NaNValues) {
-    double x = GetParam();
+    Real x = GetParam();
 
     // sinh / cosh overflow threshold
     if (!std::isfinite(x) || std::abs(x) > 700) {
@@ -69,7 +70,13 @@ INSTANTIATE_TEST_SUITE_P(
     CoreValues,
     CoreValues_HyperbolicDynamic,
     ::testing::Values(
-        HyperbolicTestCase{0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+        HyperbolicTestCase{0.0,
+             0.0,
+             1.0,
+             0.0,
+           0.0,
+           0.0,
+           0.0},
         HyperbolicTestCase{1.0, std::sinh(1.0), std::cosh(1.0), std::tanh(1.0),
                            std::asinh(1.0), std::acosh(1.0), std::atanh(0.5)}
     )

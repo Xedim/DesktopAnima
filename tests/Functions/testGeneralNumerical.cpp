@@ -2,44 +2,45 @@
 #include <cmath>
 #include <vector>
 #include "../../math/pattern/Functions.h"
+#include "../../math/common/Types.h"
 
 // ---------------- dirac_delta ----------------
-struct DiracTestCase { double x; double eps; double expected; bool expect_nan = false; };
+struct DiracTestCase { Real x; Real eps; Real expected; bool expect_nan = false; };
 
 class General_DiracDelta : public ::testing::TestWithParam<DiracTestCase> {};
 
 TEST_P(General_DiracDelta, Values) {
     const auto& tc = GetParam();
-    double result = Functions::dirac_delta(tc.x, tc.eps);
+    Real result = Functions::dirac_delta(tc.x, tc.eps);
     if(tc.expect_nan) EXPECT_TRUE(std::isnan(result));
     else EXPECT_NEAR(result, tc.expected, 1e-12);
 }
 
 // ---------------- geometric_sum ----------------
-struct GeometricTestCase { double a; int N; double expected; };
+struct GeometricTestCase { Real a; int N; Real expected; };
 
 class General_Geometric : public ::testing::TestWithParam<GeometricTestCase> {};
 
 TEST_P(General_Geometric, Values) {
     const auto& tc = GetParam();
-    double result = Functions::geometric_sum(tc.a, tc.N);
+    Real result = Functions::geometric_sum(tc.a, tc.N);
     EXPECT_NEAR(result, tc.expected, 1e-12);
 }
 
 // ---------------- algebraic_root ----------------
-struct AlgebraicRootTestCase { double x; std::vector<double> coeffs; double expected; bool expect_nan = false; };
+struct AlgebraicRootTestCase { Real x; std::vector<Real> coeffs; Real expected; bool expect_nan = false; };
 
 class General_AlgebraicRoot : public ::testing::TestWithParam<AlgebraicRootTestCase> {};
 
 TEST_P(General_AlgebraicRoot, Values) {
     const auto& tc = GetParam();
-    double result = Functions::algebraic_root(tc.x, tc.coeffs);
+    Real result = Functions::algebraic_root(tc.x, tc.coeffs);
     if(tc.expect_nan) EXPECT_TRUE(std::isnan(result));
     else EXPECT_NEAR(result, tc.expected, 1e-12);
 }
 
 // ---------------- clamp ----------------
-struct ClampTestCase { double x; double minVal; double maxVal; double expected; };
+struct ClampTestCase { Real x; Real minVal; Real maxVal; Real expected; };
 
 class General_Clamp : public ::testing::TestWithParam<ClampTestCase> {};
 
@@ -49,7 +50,7 @@ TEST_P(General_Clamp, Values) {
 }
 
 // ---------------- lerp ----------------
-struct LerpTestCase { double a; double b; double t; double expected; };
+struct LerpTestCase { Real a; Real b; Real t; Real expected; };
 
 class General_Lerp : public ::testing::TestWithParam<LerpTestCase> {};
 
@@ -59,7 +60,7 @@ TEST_P(General_Lerp, Values) {
 }
 
 // ---------------- fma ----------------
-struct FmaTestCase { double x; double y; double z; double expected; };
+struct FmaTestCase { Real x; Real y; Real z; Real expected; };
 
 class General_Fma : public ::testing::TestWithParam<FmaTestCase> {};
 
@@ -93,7 +94,7 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         AlgebraicRootTestCase{4.0, {1,0,0}, 1},   // x^2
         AlgebraicRootTestCase{1.0, {1,1}, std::sqrt(2)},     // x+1
-        AlgebraicRootTestCase{2.0, {-5,1}, 0.0, true}        // отрицательное
+        AlgebraicRootTestCase{2.0, {-5,1}, 0.0, true}
     )
 );
 

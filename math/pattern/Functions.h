@@ -4,6 +4,7 @@
 #include <vector>
 #include "../common/Types.h"
 #include "../common/Constants.h"
+#include "../common/Utils.h"
 #include "cmath"
 
 namespace Functions {
@@ -110,7 +111,7 @@ namespace Functions {
     // ===============================================
 
     Real dirac_delta(Real x, Real eps = 1e-3);
-    Real geometric_sum(Real a, int N);
+    Real geometric_sum(Real a, int N) noexcept;
     Real algebraic_root(Real x, const VecReal& coefficients);
 
     // ====================================================
@@ -141,12 +142,17 @@ namespace Functions {
 
     Real logistic(Real x,
                   Real r,
+                  int n,
                   StabPolicy policy = StabPolicy::Reject);
 
     Real tent(Real x,
+              int n,
               StabPolicy policy = StabPolicy::Reject);
 
-    Complex julia(const Complex& z, const Complex& c,  StabPolicy policy = StabPolicy::Reject);
+    Complex julia(const Complex& z,
+                  const Complex& c,
+                  int n = Constants::JULIA_ITER,
+                  StabPolicy policy = StabPolicy::Reject);
 
     bool escapes(Complex z0, Complex c, int max_iter, Real threshold = Constants::ESC_THRESHOLD);
 
@@ -154,10 +160,35 @@ namespace Functions {
     // ================ Iterate ================
     // =========================================
 
-    Real iterate(Real x,
-                 Real r,
-                 int n = Constants::MAP_ITER,
-                 StabPolicy policy = StabPolicy::Reject);
+    template<typename T, typename MapFunc>
+    [[nodiscard]] T iterate(T x,
+                            MapFunc&& f,
+                            int n)
+    {
+        for (int i = 0; i < n; ++i) {
+            x = f(x);
+
+            if constexpr (std::is_same_v<T, Real>) {
+                if (!std::isfinite(x))
+                    return NaN();
+            } else if constexpr (std::is_same_v<T, Complex>) {
+                if (!std::isfinite(x.real()) || !std::isfinite(x.imag()))
+                    return {NaN(), NaN()};
+            }
+        }
+        return x;
+    }
+
+    [[nodiscard]] inline Real iterate(Real x,
+                                      Real r,
+                                      int n = Constants::MAP_ITER)
+    {
+        auto f = [r](Real x) {
+            return r * x * (Real{1} - x);
+        };
+
+        return iterate(x, f, n);
+    }
 
     // ==========================================================
     // ================= Descriptive Statistics =================
@@ -326,7 +357,7 @@ namespace Functions {
     // ================= Regression & Estimation ================
     // ==========================================================
 
-    LinearRegressionResult linear_regression(const VecReal& x, const VecReal& y);
+    inline LinearRegressionResult linear_regression(const VecReal& x, const VecReal& y);
     VecReal polynomial_regression(const VecReal& x, const VecReal& y, int degree);
     Real least_squares(const VecReal& residuals);
 

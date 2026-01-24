@@ -5,11 +5,7 @@
 #include <string>
 #include <functional>
 #include "../../math/pattern/Functions.h"
-#include "../../math/common/Constants.h"
-
-using namespace Functions;
-using Func1Arg = std::function<Real(Real)>;
-using Func2Arg = std::function<Real(Real, Real)>;
+#include "../math/common/Types.h"
 
 constexpr Real EPS = 1e-12;
 
@@ -17,8 +13,8 @@ constexpr Real EPS = 1e-12;
 struct FunctionTest {
     std::string name;
     int nargs; // 1 или 2 аргумента
-    Func1Arg f1;
-    Func2Arg f2;
+    Function1D f1;
+    Function2D f2;
     std::vector<Real> x_vals;
     std::vector<Real> y_vals; // для 2-х аргументов
 };

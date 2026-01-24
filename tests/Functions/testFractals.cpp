@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include "../../math/pattern/Functions.h"
-#include "../../math/common/Constants.h"
+#include "../../math/common/Types.h"
 
 // ==============================================
 // ================= Weierstrass =================
@@ -82,6 +82,7 @@ INSTANTIATE_TEST_SUITE_P(
 struct LogisticTestCase {
     Real x;
     Real r;
+    int n;
     StabPolicy policy;
     Real expected;
     bool expect_nan = false;
@@ -91,7 +92,7 @@ class LogisticTests : public ::testing::TestWithParam<LogisticTestCase> {};
 
 TEST_P(LogisticTests, Values) {
     const auto& tc = GetParam();
-    Real result = Functions::logistic(tc.x, tc.r, tc.policy);
+    Real result = Functions::logistic(tc.x, tc.r, tc.n, tc.policy);
     if (tc.expect_nan)
         EXPECT_TRUE(std::isnan(result));
     else
@@ -102,11 +103,11 @@ INSTANTIATE_TEST_SUITE_P(
     Fractal,
     LogisticTests,
     ::testing::Values(
-        LogisticTestCase{0.5, 2.0, StabPolicy::Reject, 0.5, false},
-        LogisticTestCase{0.0, 2.0, StabPolicy::Reject, 0.0, false},
-        LogisticTestCase{1.0, 3.0, StabPolicy::Reject, 0.0, false},
-        LogisticTestCase{-0.1, 2.0, StabPolicy::Reject, 0.0, true}, // x < min
-        LogisticTestCase{0.5, 0.0, StabPolicy::Reject, 0.0, true}   // r < min
+        LogisticTestCase{0.5, 2.0, 2, StabPolicy::Reject, 0.5, false},
+        LogisticTestCase{0.0, 2.0, 2, StabPolicy::Reject, 0.0, false},
+        LogisticTestCase{1.0, 3.0, 2, StabPolicy::Reject, 0.0, false},
+        LogisticTestCase{-0.1, 2.0, 2, StabPolicy::Reject, 0.0, true}, // x < min
+        LogisticTestCase{0.5, 0.0, 2, StabPolicy::Reject, 0.0, true}   // r < min
     )
 );
 
@@ -115,6 +116,7 @@ INSTANTIATE_TEST_SUITE_P(
 // ==============================================
 struct TentTestCase {
     Real x;
+    int n;
     StabPolicy policy;
     Real expected;
     bool expect_nan = false;
@@ -124,7 +126,7 @@ class TentTests : public ::testing::TestWithParam<TentTestCase> {};
 
 TEST_P(TentTests, Values) {
     const auto& tc = GetParam();
-    Real result = Functions::tent(tc.x, tc.policy);
+    Real result = Functions::tent(tc.x, tc.n, tc.policy);
     if (tc.expect_nan)
         EXPECT_TRUE(std::isnan(result));
     else
@@ -135,11 +137,11 @@ INSTANTIATE_TEST_SUITE_P(
     Fractal,
     TentTests,
     ::testing::Values(
-        TentTestCase{0.0, StabPolicy::Reject, 0.0, false},
-        TentTestCase{Constants::TENT_PEAK, StabPolicy::Reject, Constants::TENT_SLOPE * Constants::TENT_PEAK, false},
-        TentTestCase{1.0, StabPolicy::Reject, 0.0, false},
-        TentTestCase{-0.1, StabPolicy::Reject, 0.0, true}, // x < min
-        TentTestCase{1.1, StabPolicy::Reject, 0.0, true}   // x > max
+        TentTestCase{0.0, 1, StabPolicy::Reject, 0.0, false},
+        TentTestCase{Constants::TENT_PEAK, 1, StabPolicy::Reject, Constants::TENT_SLOPE * Constants::TENT_PEAK, false},
+        TentTestCase{1.0, 1, StabPolicy::Reject, 0.0, false},
+        TentTestCase{-0.1, 1, StabPolicy::Reject, 0.0, true}, // x < min
+        TentTestCase{1.1, 1, StabPolicy::Reject, 0.0, true}   // x > max
     )
 );
 
@@ -149,6 +151,7 @@ INSTANTIATE_TEST_SUITE_P(
 struct JuliaTestCase {
     Complex z;
     Complex c;
+    int n;
     StabPolicy policy;
     Complex expected;
 };
@@ -157,7 +160,7 @@ class JuliaTests : public ::testing::TestWithParam<JuliaTestCase> {};
 
 TEST_P(JuliaTests, Values) {
     const auto& tc = GetParam();
-    Complex result = Functions::julia(tc.z, tc.c, tc.policy);
+    Complex result = Functions::julia(tc.z, tc.c, tc.n, tc.policy);
     EXPECT_NEAR(result.real(), tc.expected.real(), 1e-2);
     EXPECT_NEAR(result.imag(), tc.expected.imag(), 1e-2);
 }
@@ -166,9 +169,9 @@ INSTANTIATE_TEST_SUITE_P(
     Fractal,
     JuliaTests,
     ::testing::Values(
-        JuliaTestCase{{0.0, 0.0}, {0.0, 0.0}, StabPolicy::Raw, {0.0, 0.0}},
-        JuliaTestCase{{1.0, 1.0}, {0.0, 0.0}, StabPolicy::Raw, {-4.0, 0.0}},
-        JuliaTestCase{{1.0, -1.0}, {0.5, 0.5}, StabPolicy::Raw, {-1.5, -1.0}}
+        JuliaTestCase{{0.0, 0.0}, {0.0, 0.0}, Constants::JULIA_ITER, StabPolicy::Reject, {0.0, 0.0}},
+        JuliaTestCase{{1.0, 1.0}, {0.0, 0.0}, Constants::JULIA_ITER, StabPolicy::Reject, {-4.0, 0.0}},
+        JuliaTestCase{{1.0, -1.0}, {0.5, 0.5}, Constants::JULIA_ITER, StabPolicy::Reject, {-1.5, -1.0}}
     )
 );
 

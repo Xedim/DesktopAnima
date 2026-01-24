@@ -4,7 +4,7 @@
 
 namespace Constants {
 
-    [[nodiscard]] constexpr Real geometric_sum(Real a = 0.5, int N = 50) noexcept {
+    [[nodiscard]] constexpr Real geometric_sum(Real a, int N) noexcept {
         Real sum = Real{0};
         Real term = Real{1};
         for (int i = 0; i < N; ++i) {
@@ -21,7 +21,8 @@ namespace Constants {
     constexpr Real E  = 2.71828182845904523536;
 
     constexpr Real H = 1e-5;                      // малое число для производных
-    constexpr Real EPS = 1e-9;                    // общая точность сравнения чисел
+    constexpr Real EPS_09 = 1e-9;                    // общая точность сравнения чисел
+    constexpr Real EPS_03 = 1e-3;
     constexpr Real SMALL = 1e-6;                  // малое число для приближений
 
     constexpr int FACTORIAL_CACHE_SIZE = 21;

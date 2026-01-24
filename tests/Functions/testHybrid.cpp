@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include "../../math/pattern/Functions.h"
+#include "../../math/common/Types.h"
 
 // ---------------- x_pow_y ----------------
 struct PowTestCase {
-    double x;
-    double y;
-    double expected;
+    Real x;
+    Real y;
+    Real expected;
     bool expect_nan = false;
 };
 
@@ -14,7 +15,7 @@ class Hybrid_XPowY : public ::testing::TestWithParam<PowTestCase> {};
 
 TEST_P(Hybrid_XPowY, CoreValues) {
     const auto& tc = GetParam();
-    double result = Functions::x_pow_y(tc.x, tc.y);
+    Real result = Functions::x_pow_y(tc.x, tc.y);
 
     if (tc.expect_nan) {
         EXPECT_TRUE(std::isnan(result));
@@ -39,8 +40,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 // ---------------- sqrt1pm1 ----------------
 struct Sqrt1pm1TestCase {
-    double input;
-    double expected;
+    Real input;
+    Real expected;
     bool expect_nan = false;
 };
 
@@ -48,7 +49,7 @@ class Hybrid_Sqrt1pm1 : public ::testing::TestWithParam<Sqrt1pm1TestCase> {};
 
 TEST_P(Hybrid_Sqrt1pm1, CoreValues) {
     const auto& tc = GetParam();
-    double result = Functions::sqrt1pm1(tc.input);
+    Real result = Functions::sqrt1pm1(tc.input);
 
     if (tc.expect_nan) {
         EXPECT_TRUE(std::isnan(result));
@@ -71,8 +72,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 // ---------------- Heaviside ----------------
 struct HeavisideTestCase {
-    double input;
-    double expected;
+    Real input;
+    Real expected;
 };
 
 class Hybrid_Heaviside : public ::testing::TestWithParam<HeavisideTestCase> {};
