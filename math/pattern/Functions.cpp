@@ -8,6 +8,8 @@
 #include <boost/math/special_functions/legendre.hpp>
 #include <boost/math/special_functions/lambert_w.hpp> // used by Functions::lambert_w
 #include <boost/math/distributions/students_t.hpp>
+#include <boost/math/distributions/gamma.hpp>
+#include <boost/math/distributions/beta.hpp>
 #include <mutex>
 #include <ranges>
 #include <algorithm>
@@ -872,8 +874,8 @@ namespace Functions {
         return { quantile(x, 0.25), quantile(x, 0.5), quantile(x, 0.75) };
     }
 
-    Real iqr(VecReal x) {
-        const auto q = quartiles(std::move(x));
+    Real iqr(const VecReal& x) {
+        const auto q = quartiles(x);
         return q.q3 - q.q1;
     }
 
@@ -1081,15 +1083,23 @@ namespace Functions {
 
     Real autocovariance(const VecReal& x, int lag) {
         const std::size_t n = x.size();
-        if (lag < 0 || lag >= static_cast<int>(n)) return NaN();
+        if (n < 2) return NaN();
+        if (std::abs(lag) >= static_cast<int>(n)) return NaN();
 
         const Real m = mean(x);
         Real acc = 0;
+        std::size_t count = 0;
+        int L = std::abs(lag);
 
-        for (std::size_t i = 0; i + lag < n; ++i)
-            acc += (x[i] - m) * (x[i + lag] - m);
+        for (std::size_t i = 0; i + L < n; ++i) {
+            if (lag >= 0)
+                acc += (x[i] - m) * (x[i + L] - m);
+            else
+                acc += (x[i + L] - m) * (x[i] - m);
+            ++count;
+        }
 
-        return acc / (static_cast<Real>(n) - lag);
+        return count > 0 ? acc / static_cast<Real>(count) : NaN();
     }
 
     Real autocorrelation(const VecReal& x, int lag) {
@@ -1113,24 +1123,24 @@ namespace Functions {
 
     Real cross_correlation(const VecReal& x, const VecReal& y, int lag) {
         const std::size_t n = x.size();
-        if (n != y.size() || n == 0) return NaN();
+        if (n < 2 || n != y.size()) return NaN();
         if (std::abs(lag) >= static_cast<int>(n)) return NaN();
 
         const Real mx = mean(x);
         const Real my = mean(y);
-
         Real acc = 0;
-        const std::size_t L = std::abs(lag);
+        std::size_t count = 0;
+        int L = std::abs(lag);
 
-        if (lag >= 0) {
-            for (std::size_t i = 0; i + L < n; ++i)
+        for (std::size_t i = 0; i + L < n; ++i) {
+            if (lag >= 0)
                 acc += (x[i] - mx) * (y[i + L] - my);
-        } else {
-            for (std::size_t i = 0; i + L < n; ++i)
+            else
                 acc += (x[i + L] - mx) * (y[i] - my);
+            ++count;
         }
 
-        return acc / static_cast<Real>(n - L) / std::sqrt(variance(x) * variance(y));
+        return count > 0 ? acc / static_cast<Real>(count) : NaN();
     }
 
     // ==========================================================
@@ -1139,41 +1149,17 @@ namespace Functions {
 
     namespace dist {
 
-        struct Normal {
-            Real mu;
-            Real sigma;
-
-            // --- cached ---
-            Real inv_sigma;
-            Real inv_sigma_sqrt2;
-            Real inv_sigma_sqrt2pi;
-            Real log_norm;
-
-            explicit Normal(Real mu_, Real sigma_)
-                : mu(mu_), sigma(sigma_) {
-
-                if (sigma_ > 0) {
-                    inv_sigma = Real{1} / sigma_;
-                    inv_sigma_sqrt2 = inv_sigma / Constants::SQRT2;
-                    inv_sigma_sqrt2pi = inv_sigma / Constants::SQRT_2PI;
-                    log_norm = std::log(sigma_ * Constants::SQRT_2PI);
-                } else {
-                    inv_sigma = inv_sigma_sqrt2 = inv_sigma_sqrt2pi = log_norm = NaN();
-                }
-            }
-        };
-
-        inline Real pdf(const Normal& d, Real x) {
+        Real pdf(const Normal& d, Real x) {
             const Real z = (x - d.mu) * d.inv_sigma;
             return std::exp(-Real{0.5} * z * z) * d.inv_sigma_sqrt2pi;
         }
 
-        inline Real cdf(const Normal& d, Real x) {
+        Real cdf(const Normal& d, Real x) {
             const Real z = (x - d.mu) * d.inv_sigma_sqrt2;
             return Real{0.5} * (Real{1} + std::erf(z));
         }
 
-        inline Real quantile(const Normal& d, Real p) {
+        Real quantile(const Normal& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
             return d.mu + d.sigma * Constants::SQRT2 *
                    boost::math::erf_inv(Real{2} * p - Real{1});
@@ -1195,41 +1181,20 @@ namespace Functions {
             return -Real{0.5} * acc - n * log_norm;
         }
 
-
-        struct LogNormal {
-            Real mu;
-            Real sigma;
-
-            // cached
-            Real inv_sigma;
-            Real log_norm;
-
-            explicit LogNormal(Real mu_, Real sigma_)
-                : mu(mu_), sigma(sigma_) {
-
-                if (sigma_ > 0) {
-                    inv_sigma = Real{1} / sigma_;
-                    log_norm = std::log(sigma_ * Constants::SQRT_2PI);
-                } else {
-                    inv_sigma = log_norm = NaN();
-                }
-            }
-        };
-
-        inline Real pdf(const LogNormal& d, Real x) {
+        Real pdf(const LogNormal& d, Real x) {
             if (x <= 0) return 0;
             Real lx = std::log(x);
             Real z = (lx - d.mu) * d.inv_sigma;
             return std::exp(-Real{0.5} * z * z) / (x * d.sigma * Constants::SQRT_2PI);
         }
 
-        inline Real cdf(const LogNormal& d, Real x) {
+        Real cdf(const LogNormal& d, Real x) {
             if (x <= 0) return 0;
             Real z = (std::log(x) - d.mu) * d.inv_sigma / Constants::SQRT2;
             return Real{0.5} * (Real{1} + std::erf(z));
         }
 
-        inline Real quantile(const LogNormal& d, Real p) {
+        Real quantile(const LogNormal& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
             return std::exp(d.mu + d.sigma * Constants::SQRT2 *
                             boost::math::erf_inv(Real{2} * p - Real{1}));
@@ -1252,24 +1217,17 @@ namespace Functions {
                    - acc;
         }
 
-        struct Exponential {
-            Real lambda;
-
-            explicit Exponential(Real lambda_)
-                : lambda(lambda_) {}
-        };
-
-        inline Real pdf(const Exponential& d, Real x) {
+        Real pdf(const Exponential& d, Real x) {
             return (x < 0 || d.lambda <= 0) ? 0
                    : d.lambda * std::exp(-d.lambda * x);
         }
 
-        inline Real cdf(const Exponential& d, Real x) {
+        Real cdf(const Exponential& d, Real x) {
             return (x < 0 || d.lambda <= 0) ? 0
                    : Real{1} - std::exp(-d.lambda * x);
         }
 
-        inline Real quantile(const Exponential& d, Real p) {
+        Real quantile(const Exponential& d, Real p) {
             return (p <= 0 || p >= 1 || d.lambda <= 0)
                    ? NaN()
                    : -std::log(Real{1} - p) / d.lambda;
@@ -1288,22 +1246,97 @@ namespace Functions {
                    - d.lambda * sum;
         }
 
-        struct Weibull {
-            Real k;
-            Real lambda;
+        Real pdf(const Gamma& d, Real x) {
+            if (x <= 0 || d.k <= 0 || d.theta <= 0) return 0;
 
-            Real inv_lambda;
-            Real log_lambda;
+            return std::exp(
+                (d.k - 1) * std::log(x)
+                - x * d.inv_theta
+                - d.k * d.log_theta
+                - d.log_gamma_k
+            );
+        }
 
-            explicit Weibull(Real k_, Real lambda_)
-                : k(k_), lambda(lambda_) {
+        Real cdf(const Gamma& d, Real x) {
+            if (x <= 0 || d.k <= 0 || d.theta <= 0) return 0;
 
-                inv_lambda = Real{1} / lambda_;
-                log_lambda = std::log(lambda_);
+            return boost::math::gamma_p(d.k, x * d.inv_theta);
+        }
+
+        Real quantile(const Gamma& d, Real p) {
+            if (p <= 0 || p >= 1 || d.k <= 0 || d.theta <= 0) return NaN();
+
+            boost::math::gamma_distribution g(d.k, d.theta);
+            return boost::math::quantile(g, p);
+        }
+
+        Real log_likelihood(const Gamma& d, const VecReal& data) {
+            if (d.k <= 0 || d.theta <= 0 || data.empty()) return NaN();
+
+            Real sum_log = 0;
+            Real sum_x   = 0;
+
+            for (Real x : data) {
+                if (x <= 0) return NaN();
+                sum_log += std::log(x);
+                sum_x   += x;
             }
-        };
 
-        inline Real pdf(const Weibull& d, Real x) {
+            const Real n = static_cast<Real>(data.size());
+
+            return (d.k - 1) * sum_log
+                 - sum_x * d.inv_theta
+                 - n * (d.k * d.log_theta + d.log_gamma_k);
+        }
+
+        Real pdf(const Beta& d, Real x) {
+            if (x <= 0 || x >= 1 || d.alpha <= 0 || d.beta <= 0)
+                return 0;
+
+            return std::exp(
+                (d.alpha - 1) * std::log(x)
+              + (d.beta  - 1) * std::log(Real{1} - x)
+              - d.log_beta_fn
+            );
+        }
+
+        Real cdf(const Beta& d, Real x) {
+            if (x <= 0) return 0;
+            if (x >= 1) return 1;
+            if (d.alpha <= 0 || d.beta <= 0) return NaN();
+
+            return boost::math::ibeta(d.alpha, d.beta, x);
+        }
+
+        Real quantile(const Beta& d, Real p) {
+            if (p <= 0 || p >= 1 || d.alpha <= 0 || d.beta <= 0)
+                return NaN();
+
+            boost::math::beta_distribution b(d.alpha, d.beta);
+            return boost::math::quantile(b, p);
+        }
+
+        Real log_likelihood(const Beta& d, const VecReal& data) {
+            if (d.alpha <= 0 || d.beta <= 0 || data.empty())
+                return NaN();
+
+            Real sum_log_x  = 0;
+            Real sum_log_1x = 0;
+
+            for (Real x : data) {
+                if (x <= 0 || x >= 1) return NaN();
+                sum_log_x  += std::log(x);
+                sum_log_1x += std::log(Real{1} - x);
+            }
+
+            const Real n = static_cast<Real>(data.size());
+
+            return (d.alpha - 1) * sum_log_x
+                 + (d.beta  - 1) * sum_log_1x
+                 - n * d.log_beta_fn;
+        }
+
+        Real pdf(const Weibull& d, Real x) {
             if (x < 0) return 0;
             Real t = x * d.inv_lambda;
             return (d.k / d.lambda) *
@@ -1311,12 +1344,12 @@ namespace Functions {
                    std::exp(-std::pow(t, d.k));
         }
 
-        inline Real cdf(const Weibull& d, Real x) {
+        Real cdf(const Weibull& d, Real x) {
             if (x < 0) return 0;
             return Real{1} - std::exp(-std::pow(x * d.inv_lambda, d.k));
         }
 
-        inline Real quantile(const Weibull& d, Real p) {
+        Real quantile(const Weibull& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
             return d.lambda * std::pow(-std::log(Real{1} - p), Real{1} / d.k);
         }
@@ -1337,31 +1370,16 @@ namespace Functions {
                    - sum_pow;
         }
 
-        struct Cauchy {
-            Real x0;
-            Real gamma;
-
-            Real inv_gamma;
-            Real log_norm;
-
-            explicit Cauchy(Real x0_, Real gamma_)
-                : x0(x0_), gamma(gamma_) {
-
-                inv_gamma = Real{1} / gamma_;
-                log_norm = std::log(Constants::PI * gamma_);
-            }
-        };
-
-        inline Real pdf(const Cauchy& d, Real x) {
+        Real pdf(const Cauchy& d, Real x) {
             Real z = (x - d.x0) * d.inv_gamma;
             return Real{1} / (Constants::PI * d.gamma * (Real{1} + z * z));
         }
 
-        inline Real cdf(const Cauchy& d, Real x) {
+        Real cdf(const Cauchy& d, Real x) {
             return Real{0.5} + std::atan((x - d.x0) * d.inv_gamma) / Constants::PI;
         }
 
-        inline Real quantile(const Cauchy& d, Real p) {
+        Real quantile(const Cauchy& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
             return d.x0 + d.gamma * std::tan(Constants::PI * (p - Real{0.5}));
         }
@@ -1375,31 +1393,18 @@ namespace Functions {
             return -static_cast<Real>(data.size()) * d.log_norm - acc;
         }
 
-        struct StudentT {
-            Real nu;
-
-            Real log_norm;
-
-            explicit StudentT(Real nu_) : nu(nu_) {
-                log_norm =
-                    boost::math::lgamma((nu + 1) / 2) -
-                    boost::math::lgamma(nu / 2) -
-                    Real{0.5} * std::log(nu * Constants::PI);
-            }
-        };
-
-        inline Real pdf(const StudentT& d, Real x) {
+        Real pdf(const StudentT& d, Real x) {
             Real t = Real{1} + (x * x) / d.nu;
             return std::exp(d.log_norm) * std::pow(t, -(d.nu + 1) / 2);
         }
 
-        inline Real cdf(const StudentT& d, Real x) {
+        Real cdf(const StudentT& d, Real x) {
             if (d.nu <= 0) return NaN();
             boost::math::students_t_distribution<Real> t(d.nu);
             return boost::math::cdf(t, x);
         }
 
-        inline Real quantile(const StudentT& d, Real p) {
+        Real quantile(const StudentT& d, Real p) {
             if (d.nu <= 0 || p <= 0 || p >= 1) return NaN();
             boost::math::students_t_distribution<Real> t(d.nu);
             return boost::math::quantile(t, p);

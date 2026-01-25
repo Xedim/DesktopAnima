@@ -70,7 +70,7 @@ TEST_P(TrimmedMeanTests, TrimmedMean) {
 // ----------------- генерация динамических кейсов -----------------
 std::vector<QuantileCase> make_quantile_cases() {
     std::vector<QuantileCase> cases;
-    cases.push_back({{}, 0.5, std::numeric_limits<Real>::quiet_NaN()});
+    cases.push_back({{}, 0.5, NaN()});
     cases.push_back({{1}, 0.0, 1.0});
     cases.push_back({{1}, 1.0, 1.0});
     cases.push_back({{1,2,3,4}, 0.25, 1.75});
