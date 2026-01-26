@@ -8,6 +8,15 @@
 
 namespace Utils {
 
+    inline Real clamp01(Real x) {
+        return std::clamp(x, Real{0}, Real{1});
+    }
+
+    inline Real clampProb(Real p) {
+        constexpr Real eps = Real{1e-12};
+        return std::clamp(p, eps, Real{1} - eps);
+    }
+
     // Policy and Stability
     template<typename T>
     [[nodiscard]] constexpr T clamp_range(T x, T lo, T hi) noexcept {

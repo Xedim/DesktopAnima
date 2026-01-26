@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "../math/pattern/Functions.h"
 #include <boost/math/distributions/normal.hpp>
-#include <boost/math/distributions/beta.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/beta.hpp>
 #include <vector>

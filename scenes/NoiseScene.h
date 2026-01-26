@@ -21,6 +21,8 @@ enum class NoiseVariant {
     Noise10,
     Noise11,
     Noise12,
+    Noise13,
+    Noise14,
     _Count
 };
 
@@ -34,7 +36,7 @@ struct NoiseParams {
 
     float speed      = 0.35f;
     float trailDecay = 1.0f;
-    float intensity  = 0.1f;
+    float intensity  = 0.9f;
     glm::vec3 color  = {0.0f, 0.0f, 0.0f};
 };
 
