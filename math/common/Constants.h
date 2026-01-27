@@ -21,9 +21,10 @@ namespace Constants {
     constexpr Real E  = 2.71828182845904523536;
 
     constexpr Real H = 1e-5;                      // малое число для производных
-    constexpr Real EPS_09 = 1e-9;                    // общая точность сравнения чисел
+    constexpr Real EPS_12 = 1e-12;
+    constexpr Real EPS_09 = 1e-9;
+    constexpr Real EPS_06 = 1e-6;
     constexpr Real EPS_03 = 1e-3;
-    constexpr Real SMALL = 1e-6;                  // малое число для приближений
 
     constexpr int FACTORIAL_CACHE_SIZE = 21;
     constexpr inline Real factorial_cache[FACTORIAL_CACHE_SIZE] = {

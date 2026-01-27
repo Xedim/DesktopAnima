@@ -1160,13 +1160,13 @@ namespace Functions {
 
         Real cdf(const Normal& d, Real x) {
             boost::math::normal_distribution n(d.mu, d.sigma);
-            return Utils::clamp01(boost::math::cdf(n, x));
+            return boost::math::cdf(n, x);
         }
 
         Real quantile(const Normal& d, Real p) {
             if (d.sigma <= 0) return NaN();
             boost::math::normal_distribution n(d.mu, d.sigma);
-            return boost::math::quantile(n, Utils::clampProb(p));
+            return boost::math::quantile(n, Utils::safeProb(p));
         }
 
         Real log_likelihood(const Normal& d, const VecReal& data) {
@@ -1194,14 +1194,14 @@ namespace Functions {
 
         Real cdf(const LogNormal& d, Real x) {
             if (x <= 0) return Real{0};
-            boost::math::lognormal_distribution<Real> ln(d.mu, d.sigma);
-            return Utils::clamp01(boost::math::cdf(ln, x));
+            boost::math::lognormal_distribution ln(d.mu, d.sigma);
+            return boost::math::cdf(ln, x);
         }
 
         Real quantile(const LogNormal& d, Real p) {
             if (d.sigma <= 0) return NaN();
-            boost::math::lognormal_distribution<Real> ln(d.mu, d.sigma);
-            return boost::math::quantile(ln, Utils::clampProb(p));
+            boost::math::lognormal_distribution ln(d.mu, d.sigma);
+            return boost::math::quantile(ln, Utils::safeProb(p));
         }
 
         Real log_likelihood(const LogNormal& d, const VecReal& data) {
@@ -1234,8 +1234,8 @@ namespace Functions {
 
         Real quantile(const Exponential& d, Real p) {
             if (d.lambda <= 0) return NaN();
-            boost::math::exponential_distribution<Real> e(d.lambda);
-            return boost::math::quantile(e, Utils::clampProb(p));
+            boost::math::exponential_distribution e(d.lambda);
+            return boost::math::quantile(e, Utils::safeProb(p));
         }
 
         Real log_likelihood(const Exponential& d, const VecReal& data) {
@@ -1264,14 +1264,14 @@ namespace Functions {
 
         Real cdf(const Gamma& d, Real x) {
             if (x <= 0 || d.k <= 0 || d.theta <= 0) return 0;
-            boost::math::gamma_distribution<Real> g(d.k, d.theta);
-            return Utils::clamp01(boost::math::cdf(g, x));
+            boost::math::gamma_distribution g(d.k, d.theta);
+            return boost::math::cdf(g, x);
         }
 
         Real quantile(const Gamma& d, Real p) {
-            if (p <= 0 || p >= 1 || d.k <= 0 || d.theta <= 0) return NaN();
-            boost::math::gamma_distribution<Real> g(d.k, d.theta);
-            return boost::math::quantile(g, Utils::clampProb(p));
+            if (d.k <= 0 || d.theta <= 0) return NaN();
+            boost::math::gamma_distribution g(d.k, d.theta);
+            return boost::math::quantile(g, Utils::safeProb(p));
         }
 
         Real log_likelihood(const Gamma& d, const VecReal& data) {
@@ -1308,15 +1308,15 @@ namespace Functions {
             if (x <= 0) return 0;
             if (x >= 1) return 1;
             if (d.alpha <= 0 || d.beta <= 0) return NaN();
-            boost::math::beta_distribution<Real> b(d.alpha, d.beta);
-            return Utils::clamp01(boost::math::cdf(b, x));
+            boost::math::beta_distribution b(d.alpha, d.beta);
+            return boost::math::cdf(b, x);
         }
 
         Real quantile(const Beta& d, Real p) {
-            if (p <= 0 || p >= 1 || d.alpha <= 0 || d.beta <= 0)
+            if (d.alpha <= 0 || d.beta <= 0)
                 return NaN();
 
-            boost::math::beta_distribution<Real> b(d.alpha, d.beta);
+            boost::math::beta_distribution b(d.alpha, d.beta);
             return boost::math::quantile(b, Utils::clampProb(p));
         }
 
@@ -1354,9 +1354,8 @@ namespace Functions {
         }
 
         Real quantile(const Weibull& d, Real p) {
-            if (p <= 0 || p >= 1) return NaN();
-            boost::math::weibull_distribution<Real> w(d.k, d.lambda);
-            return boost::math::quantile(w, Utils::clampProb(p));
+            boost::math::weibull_distribution w(d.k, d.lambda);
+            return boost::math::quantile(w, Utils::safeProb(p));
         }
 
         Real log_likelihood(const Weibull& d, const VecReal& data) {
@@ -1382,14 +1381,14 @@ namespace Functions {
         }
 
         Real cdf(const Cauchy& d, Real x) {
-            boost::math::cauchy_distribution<Real> c(d.x0, d.gamma);
-            return Utils::clamp01(boost::math::cdf(c, x));
+            boost::math::cauchy_distribution c(d.x0, d.gamma);
+            return boost::math::cdf(c, x);
         }
 
         Real quantile(const Cauchy& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
-            boost::math::cauchy_distribution<Real> c(d.x0, d.gamma);
-            return boost::math::quantile(c, Utils::clampProb(p));
+            boost::math::cauchy_distribution c(d.x0, d.gamma);
+            return boost::math::quantile(c, Utils::safeProb(p));
         }
 
         Real log_likelihood(const Cauchy& d, const VecReal& data) {
@@ -1409,14 +1408,14 @@ namespace Functions {
 
         Real cdf(const StudentT& d, Real x) {
             if (d.nu <= 0) return NaN();
-            boost::math::students_t_distribution<Real> t(d.nu);
-            return Utils::clamp01(boost::math::cdf(t, x));
+            boost::math::students_t_distribution t(d.nu);
+            return boost::math::cdf(t, x);
         }
 
         Real quantile(const StudentT& d, Real p) {
-            if (d.nu <= 0 || p <= 0 || p >= 1) return NaN();
+            if (d.nu <= 0) return NaN();
             boost::math::students_t_distribution<Real> t(d.nu);
-            return boost::math::quantile(t, Utils::clampProb(p));
+            return boost::math::quantile(t, Utils::safeProb(p));
         }
 
         Real log_likelihood(const StudentT& d, const VecReal& data) {
@@ -1437,97 +1436,106 @@ namespace Functions {
 
     inline Real z_test(const VecReal& x, Real mu, Real sigma) {
         if (x.empty() || sigma <= 0) return NaN();
-        Real m = mean(x);
-        return (m - mu) / (sigma / std::sqrt(x.size()));
+        return (mean(x) - mu) / (sigma / std::sqrt(x.size()));
     }
 
     inline Real t_test(const VecReal& x, Real mu) {
         if (x.size() < 2) return NaN();
         Real s = stddev_unbiased(x);
-        if (s == 0) return NaN();
-        Real m = mean(x);
-        return (m - mu) / (s / std::sqrt(x.size()));
+        if (s <= 0) return NaN();
+        return (mean(x) - mu) / (s / std::sqrt(x.size()));
     }
 
     inline Real welch_t_test(const VecReal& x, const VecReal& y) {
         if (x.size() < 2 || y.size() < 2) return NaN();
-        Real mx = mean(x), my = mean(y);
-        Real vx = variance_unbiased(x), vy = variance_unbiased(y);
-        return (mx - my) / std::sqrt(vx / static_cast<Real>(x.size()) + vy / static_cast<Real>(y.size()));
+        Real vx = variance_unbiased(x);
+        Real vy = variance_unbiased(y);
+        if (vx <= 0 || vy <= 0) return NaN();
+        return (mean(x) - mean(y)) /
+               std::sqrt(vx / x.size() + vy / y.size());
     }
 
-    // Mann-Whitney U
     inline Real mann_whitney_u(const VecReal& x, const VecReal& y) {
         if (x.empty() || y.empty()) return NaN();
         Real u = 0;
         for (Real xi : x)
             for (Real yj : y)
-                u += xi > yj ? 1 : 0;
+                if (xi > yj) u += 1;
         return u;
     }
 
-    // Wilcoxon Signed-Rank
     inline Real wilcoxon_signed_rank(const VecReal& x, const VecReal& y) {
         if (x.size() != y.size()) return NaN();
-        VecReal d;
-        d.reserve(x.size());
-        for (std::size_t i = 0; i < x.size(); ++i) {
-            Real diff = x[i] - y[i];
-            if (diff != 0) d.push_back(std::abs(diff));
+
+        struct Diff { Real abs; Real sign; };
+        std::vector<Diff> d;
+
+        for (size_t i = 0; i < x.size(); ++i) {
+            Real v = x[i] - y[i];
+            if (v != 0) d.push_back({std::abs(v), static_cast<Real>(v > 0 ? 1 : -1)});
         }
-        std::ranges::sort(d);
-        Real sum = 0;
-        for (std::size_t i = 0; i < d.size(); ++i)
-            sum += static_cast<Real>(i) + 1;
-        return sum;
+
+        if (d.empty()) return 0;
+
+        std::ranges::sort(d, {}, &Diff::abs);
+
+        Real W = 0;
+        for (size_t i = 0; i < d.size(); ++i)
+            W += (i + 1) * d[i].sign;
+
+        return W;
     }
 
-    // Kolmogorov-Smirnov
     inline Real ks_test(const VecReal& x, const VecReal& y) {
         if (x.empty() || y.empty()) return NaN();
         VecReal xs = x, ys = y;
         std::ranges::sort(xs);
         std::ranges::sort(ys);
 
-        std::size_t i = 0, j = 0;
+        size_t i = 0, j = 0;
         Real d = 0;
+
         while (i < xs.size() && j < ys.size()) {
             Real v = std::min(xs[i], ys[j]);
             while (i < xs.size() && xs[i] <= v) ++i;
             while (j < ys.size() && ys[j] <= v) ++j;
-            d = std::max(d, std::abs(static_cast<Real>(i) / static_cast<Real>(xs.size()) -
-                                     static_cast<Real>(j) / static_cast<Real>(ys.size())));
+            d = std::max(d, std::abs(static_cast<Real>(i) / xs.size() - static_cast<Real>(j) / ys.size()));
         }
         return d;
     }
 
-    // Chi-square
-    inline Real chi_square_test(const VecReal& observed, const VecReal& expected) {
-        if (observed.size() != expected.size()) return NaN();
+    inline Real chi_square_test(const VecReal& o, const VecReal& e) {
+        if (o.size() != e.size()) return NaN();
         Real chi2 = 0;
-        for (std::size_t i = 0; i < observed.size(); ++i) {
-            if (expected[i] <= 0) return NaN();
-            Real diff = observed[i] - expected[i];
-            chi2 += diff * diff / expected[i];
+        for (size_t i = 0; i < o.size(); ++i) {
+            if (e[i] <= 0) return NaN();
+            Real d = o[i] - e[i];
+            chi2 += d * d / e[i];
         }
         return chi2;
     }
 
-    // Anderson-Darling
     inline Real anderson_darling(const VecReal& x) {
         if (x.size() < 2) return NaN();
         VecReal xs = x;
         std::ranges::sort(xs);
-        Real m = mean(xs);
-        Real s = stddev(xs);
 
-        Real A2 = 0;
-        for (std::size_t i = 0; i < xs.size(); ++i) {
+        Real m = mean(xs);
+        Real s = stddev(xs); // MLE
+        if (s <= 0) return NaN();
+
+        size_t n = xs.size();
+        Real sum = 0;
+
+        for (size_t i = 0; i < n; ++i) {
             Real Fi = 0.5 * (1 + std::erf((xs[i] - m) / (s * std::sqrt(2))));
-            Real Fj = 0.5 * (1 + std::erf((xs[xs.size() - 1 - i] - m) / (s * std::sqrt(2))));
-            A2 += (2 * static_cast<Real>(i) + 1) * (std::log(Fi) + std::log(1 - Fj));
+            Real Fj = 0.5 * (1 + std::erf((xs[n - 1 - i] - m) / (s * std::sqrt(2))));
+            Fi = std::clamp(Fi, Constants::EPS_12, 1 - Constants::EPS_12);
+            Fj = std::clamp(Fj, Constants::EPS_12, 1 - Constants::EPS_12);
+            sum += (2 * i + 1) * (std::log(Fi) + std::log(1 - Fj));
         }
-        return -static_cast<Real>(xs.size()) - A2 / static_cast<Real>(xs.size());
+
+        return -static_cast<Real>(n) - sum / static_cast<Real>(n);
     }
 
     // ==========================================================

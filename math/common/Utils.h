@@ -12,6 +12,10 @@ namespace Utils {
         return std::clamp(x, Real{0}, Real{1});
     }
 
+    inline Real safeProb(Real p) {
+        return std::clamp(p, Constants::EPS_09, Real{1} - Constants::EPS_09);
+    }
+
     inline Real clampProb(Real p) {
         constexpr Real eps = Real{1e-12};
         return std::clamp(p, eps, Real{1} - eps);
