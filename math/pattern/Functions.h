@@ -456,7 +456,8 @@ namespace Functions {
     Real cross_entropy(const VecReal& p, const VecReal& q);
     Real kl_divergence(const VecReal& p, const VecReal& q);
     Real js_divergence(const VecReal& p, const VecReal& q);
-    Real mutual_information(const VecReal& x, const VecReal& y);
+    Real joint_entropy(const VecReal& pxy);
+    Real mutual_information(const VecReal& x, const VecReal& y, const VecReal& pxy);
     Real conditional_entropy(const VecReal& x, const VecReal& y);
 
     // ==========================================================
@@ -486,15 +487,15 @@ namespace Functions {
     // ==========================================================
 
     Real bootstrap_mean(const VecReal& x, int n);
-    RealPair bootstrap_ci(const VecReal& x, Real alpha);
+    RealPair bootstrap_ci(const VecReal& x, Real alpha, int n);
     VecReal jackknife(const VecReal& x);
-    Real permutation_test(const VecReal& x, const VecReal& y);
+    Real permutation_test(const VecReal& x, const VecReal& y, int trials);
 
     // ==========================================================
     // ================= Regression & Estimation ================
     // ==========================================================
 
-    inline LinearRegressionResult linear_regression(const VecReal& x, const VecReal& y);
+    LinearRegressionResult linear_regression(const VecReal& x, const VecReal& y);
     VecReal polynomial_regression(const VecReal& x, const VecReal& y, int degree);
     Real least_squares(const VecReal& residuals);
 

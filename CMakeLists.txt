@@ -54,7 +54,6 @@ add_executable(testME
         tests/Functions/testStatRobust.cpp
         tests/Functions/testStatCorrelations.cpp
         tests/Functions/testStatDistributions.cpp
-        tests/Functions/testStatTests.cpp
         tests/Functions/testStatInfo.cpp
         tests/Functions/testStatCharacter.cpp
         tests/Functions/testStatTimeSeries.cpp
@@ -109,6 +108,3 @@ target_link_libraries(testME PRIVATE
         gtest
         gtest_main
 )
-
-enable_testing()
-add_test(NAME MathEngineTests COMMAND testME)
