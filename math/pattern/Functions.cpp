@@ -29,7 +29,7 @@ namespace Functions {
     // ================= Algebraic =================
     // =============================================
 
-    [[nodiscard]] Real abs(Real x) { return abs(x); }
+    [[nodiscard]] Real abs(Real x) { return std::abs(x); }
 
     [[nodiscard]] Real factorial(int n) {
         if (n < 0) return NaN();
@@ -67,7 +67,7 @@ namespace Functions {
     [[nodiscard]] Real mod(Real x, Real y) {
         if (y == Real{0}) return NaN();
         Real r = std::fmod(x, y);
-        if (r < 0) r += abs(y);
+        if (r < 0) r += Functions::abs(y);
         return r;
     }
 
@@ -173,18 +173,9 @@ namespace Functions {
 
     inline LogBaseCache logBaseCache;
 
-    [[nodiscard]] Real log2(Real x) {
-        if (x <= 0.0) return NaN();
-        return std::log(x) / 0.6931471805599453;
-    }
     [[nodiscard]] Real log(Real x) {
         if (x <= Real{0}) return NaN();
         return std::log(x);
-    }
-
-    [[nodiscard]] Real log10(Real x) {
-        if (x <= Real{0}) return NaN();
-        return std::log(x) / 2.302585092994046;
     }
 
     [[nodiscard]] Real log_a(Real x, Real a) {
@@ -193,9 +184,12 @@ namespace Functions {
         return std::log(x) / ln_a;
     }
 
+    [[nodiscard]] Real log2(Real x) { return log_a(x, 2.0); }
+    [[nodiscard]] Real log10(Real x) { return log_a(x, 10.0); }
+
     [[nodiscard]] Real log1p(Real x) {
         if (x <= -1.0) return NaN();
-        if (abs(x) < 1e-5) return x - 0.5 * x * x + (1.0/3.0) * x * x * x;
+        if (abs(x) < 1e-5) return x - 0.5 * x * x + (1.0 / 3.0) * x * x * x;
         return std::log1p(x);
     }
 
@@ -1434,7 +1428,7 @@ namespace Functions {
     // ================= Statistical Tests ======================
     // ==========================================================
 
-    /*[[nodiscard]] Real z_test(const VecReal& x, Real mu, Real sigma) {
+    [[nodiscard]] Real z_test(const VecReal& x, Real mu, Real sigma) {
         if (x.empty() || sigma <= 0) return NaN();
         return (mean(x) - mu) / (sigma / std::sqrt(x.size()));
     }
@@ -1558,7 +1552,7 @@ namespace Functions {
         }
 
         return -static_cast<Real>(n) - sum / static_cast<Real>(n);
-    }*/
+    }
 
     // ==========================================================
     // ================= Entropy & Information ==================
@@ -1642,7 +1636,7 @@ namespace Functions {
     // ================= Time Series / Chaos ====================
     // ==========================================================
 
-    // Rolling mean (O(n))
+    // Rolling mean
     [[nodiscard]] VecReal rolling_mean(const VecReal& x, std::size_t window) {
         if (window == 0 || x.size() < window) return {};
         VecReal out(x.size() - window + 1);
@@ -1690,7 +1684,7 @@ namespace Functions {
 
         std::vector<Real> r(lag + 1, 0);
         const Real n = static_cast<Real>(x.size());
-        Real mean = std::accumulate(x.begin(), x.end(), Real{0}) / n;
+        Real mean = Functions::mean(x);
         for (size_t k = 0; k <= static_cast<size_t>(lag); ++k) {
             for (size_t i = 0; i < x.size() - k; ++i)
                 r[k] += (x[i] - mean) * (x[i + k] - mean);
@@ -1734,20 +1728,31 @@ namespace Functions {
 
     // Detrend via linear regression
     [[nodiscard]] VecReal detrend(const VecReal& x) {
-        if (x.empty()) return {};
-        const Real n = static_cast<Real>(x.size());
-        const Real sumX = (n - 1) * n / 2;
-        const Real sumXX = (n - 1) * n * (2 * n - 1) / 6;
-        Real sumY = std::accumulate(x.begin(), x.end(), Real{0});
+        const std::size_t n = x.size();
+        if (n < 2) return x;
+
+        Real sumX = 0;
+        Real sumY = 0;
+        Real sumXX = 0;
         Real sumXY = 0;
-        for (std::size_t i = 0; i < x.size(); ++i) sumXY += static_cast<Real>(i) * x[i];
 
-        Real slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-        Real intercept = (sumY - slope * sumX) / n;
+        for (std::size_t i = 0; i < n; ++i) {
+            sumX += static_cast<Real>(i);
+            sumY += x[i];
+            sumXX += static_cast<Real>(i) * static_cast<Real>(i);
+            sumXY += static_cast<Real>(i) * x[i];
+        }
 
-        VecReal out(x.size());
-        for (std::size_t i = 0; i < x.size(); ++i)
+        Real denom = static_cast<Real>(n) * sumXX - sumX * sumX;
+        if (denom == 0) return x;
+
+        Real slope = (static_cast<Real>(n) * sumXY - sumX * sumY) / denom;
+        Real intercept = (sumY - slope * sumX) / static_cast<Real>(n);
+
+        VecReal out(n);
+        for (std::size_t i = 0; i < n; ++i)
             out[i] = x[i] - (slope * static_cast<Real>(i) + intercept);
+
         return out;
     }
 
@@ -1841,11 +1846,16 @@ namespace Functions {
     }
 
     [[nodiscard]] VecReal jackknife(const VecReal& x) {
-        if (x.empty()) return {};
-        Real total = std::accumulate(x.begin(), x.end(), Real{0});
-        VecReal out(x.size());
-        for (std::size_t i = 0; i < x.size(); ++i)
-            out[i] = (total - x[i]) / (static_cast<Real>(x.size()) - 1);
+        const std::size_t n = x.size();
+        if (n == 0) return {};
+
+        Real total = 0;
+        for (Real v : x) total += v;
+
+        VecReal out(n);
+        for (std::size_t i = 0; i < n; ++i)
+            out[i] = (total - x[i]) / static_cast<Real>(n - 1);
+
         return out;
     }
 
@@ -1991,7 +2001,7 @@ namespace Functions {
 
         Real mean = Functions::mean(x);
         Real stddev = stddev_unbiased(x);
-        if (stddev == 0) stddev = 1;
+        if (stddev == 0) return VecReal(n, Real{0});
 
         VecReal out(n);
         for (std::size_t i = 0; i < n; ++i)
@@ -2005,7 +2015,7 @@ namespace Functions {
         const std::size_t n = x.size();
         Real median = Functions::median(x);
         Real mad = median_absolute_deviation(x);
-        if (mad == 0) mad = 1e-12;
+        if (mad == 0) return VecReal(n, Real{0});
 
         VecReal out(n);
         constexpr Real scale = 0.6745;
@@ -2017,38 +2027,34 @@ namespace Functions {
 
     [[nodiscard]] bool is_outlier(Real x, Real mean, Real stddev, Real threshold) {
         if (threshold <= 0) return false;
-        return stddev > 0 && abs(x - mean) > threshold * stddev;
+        return stddev > 0 && Functions::abs(x - mean) > threshold * stddev;
     }
 
-    // Грубс-тест (односторонний)
+    // Грубс-тест
     [[nodiscard]] bool grubbs_test(const VecReal& x, Real alpha = 0.05) {
         const std::size_t n = x.size();
         if (n < 3) return false;
 
-        // mean
-        Real mean = std::accumulate(x.begin(), x.end(), Real{0})
-                  / static_cast<Real>(n);
+        const Real mean   = Functions::mean(x);
+        const Real stddev = stddev_unbiased(x);
 
-        Real sq_sum = 0;
+        if (!(stddev > Real{0})) return false;
+
         Real max_dev = 0;
-        for (Real v : x) {
-            Real d = v - mean;
-            sq_sum += d * d;
-            max_dev = std::max(max_dev, abs(d));
-        }
+        for (Real v : x)
+            max_dev = std::max(max_dev, Functions::abs(v - mean));
 
-        Real stddev = std::sqrt(sq_sum / (static_cast<Real>(n) - 1));
-        if (stddev == 0) return false;
+        const Real G = max_dev / stddev;
 
-        Real G = max_dev / stddev;
+        const Real df = static_cast<Real>(n - 2);
+        dist::StudentT t_dist{ df };
 
-        dist::StudentT t_dist{ static_cast<Real>(n - 2) };
-        Real p = Real{1} - alpha / (Real{2} * static_cast<Real>(n));
-        Real t = dist::quantile(t_dist, p);
+        const Real p = Real{1} - alpha / (Real{2} * static_cast<Real>(n));
+        const Real t = dist::quantile(t_dist, p);
 
-        Real Gcrit =
-            (static_cast<Real>(n - 1) / std::sqrt(n)) *
-            std::sqrt((t * t) / (static_cast<Real>(n - 2) + t * t));
+        const Real Gcrit =
+            (static_cast<Real>(n - 1) / std::sqrt(static_cast<Real>(n))) *
+            std::sqrt((t * t) / (df + t * t));
 
         return G > Gcrit;
     }
@@ -2056,23 +2062,17 @@ namespace Functions {
     // Критерий Шевенета
     [[nodiscard]] bool chauvenet_criterion(const VecReal& x) {
         const std::size_t n = x.size();
-        if (n == 0) return false;
+        if (n < 3) return false;
 
-        Real mean = std::accumulate(x.begin(), x.end(), Real{0}) / static_cast<Real>(n);
-        Real sq_sum = 0;
-        for (Real v : x) {
-            Real d = v - mean;
-            sq_sum += d * d;
-        }
-        Real stddev = std::sqrt(sq_sum / (static_cast<Real>(n) - 1));
-        if (stddev == 0) return false;
+        Real median = Functions::median(x);
+        Real mad = median_absolute_deviation(x);
+        if (mad == 0) mad = Constants::EPS_12;
 
-        const Real inv_sqrt2 = 1.0 / std::sqrt(2.0);
+        constexpr Real scale = 0.6745;
         return std::ranges::any_of(x, [&](Real v) {
-            Real z = abs(v - mean) / stddev;
-            Real prob = std::erfc(z * inv_sqrt2);
-        return prob * static_cast<Real>(n) < 0.5;
-    });
+            Real mz = scale * (v - median) / mad;
+            return Functions::abs(mz) > 3.5;
+        });
     }
 
 } // namespace functions

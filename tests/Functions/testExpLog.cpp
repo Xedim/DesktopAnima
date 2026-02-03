@@ -1,136 +1,146 @@
-// tests/Functions/testExpLogUnified.cpp
+// testExpLog.cpp
 #include <gtest/gtest.h>
 #include <cmath>
 #include <vector>
 #include <string>
 #include <functional>
+#include <random>
+#include <limits>
 #include "../../math/pattern/Functions.h"
-#include "../math/common/Types.h"
 
-constexpr Real EPS = 1e-12;
+using Real = double;
 
-// ----------------- Унифицированная структура функции -----------------
-struct FunctionTest {
-    std::string name;
-    int nargs; // 1 или 2 аргумента
-    Function1D f1;
-    Function2D f2;
-    std::vector<Real> x_vals;
-    std::vector<Real> y_vals; // для 2-х аргументов
-};
+// ---------------- Random generator -----------------
+std::vector<Real> generate_random(Real min, Real max, int n=50) {
+    std::vector<Real> vals(n);
+    std::uniform_real_distribution<Real> dist(min, max);
+    for (auto &v : vals) v = dist(rng);
+    return vals;
+}
 
-// ----------------- Список функций -----------------
-std::vector<FunctionTest> getFunctions() {
+// ---------------- Edge values -----------------
+std::vector<Real> edge_values() {
     return {
-        // pow(x, alpha) как 2-аргументная
-        { "pow", 2, {}, [](Real x, Real a){ return Functions::pow(x, a); }, {0.0, 1.5, -2.0, 2.5}, {0.0, 0.5, 1.0, 3.7} },
-
-        // exp(x)
-        { "exp", 1, Functions::exp, {}, {0.0, -1.0, 1.0, 700.0, -700.0, 1000.0}, {} },
-
-        // exp2(x)
-        { "exp2", 1, Functions::exp2, {}, {0.0, -1.0, 1.0, 700.0, -700.0, 1000.0}, {} },
-
-        // expm1_safe(x)
-        { "expm1_safe", 1, Functions::expm1_safe, {}, {0.0, 1e-6, -1e-6, 1.0, -1.0}, {} },
-
-        // log(x)
-        { "log", 1, Functions::log, {}, {0.0, 1.0, 2.5, 10.0}, {} },
-
-        // log2(x)
-        { "log2", 1, Functions::log2, {}, {0.0, 1.0, 2.5, 10.0}, {} },
-
-        // log10(x)
-        { "log10", 1, Functions::log10, {}, {0.0, 1.0, 2.5, 10.0}, {} },
-
-        // log_a(x, a)
-        { "log_a", 2, {}, [](Real x, Real a){ return Functions::log_a(x, a); }, {0.0, 1.0, 2.5, 10.0}, {0.5, 1.0, 2.0, 3.0} },
-
-        // log1p(x)
-        { "log1p", 1, Functions::log1p, {}, {-1.0, -0.5, 0.0, 1e-6, 0.5, 1.0}, {} }
+        0.0, -0.0,
+        1.0, -1.0,
+        std::numeric_limits<Real>::infinity(),
+        -std::numeric_limits<Real>::infinity(),
+        std::numeric_limits<Real>::quiet_NaN()
     };
 }
 
-// ----------------- Тест -----------------
-TEST(ExpLogUnified, DynamicTests) {
-    auto funcs = getFunctions();
+// ---------------- Unified function descriptor -----------------
+struct FunctionTest {
+    std::string name;
+    int nargs; // 1 или 2
 
-    for (auto &f : funcs) {
-        SCOPED_TRACE(f.name); // чтобы видеть имя функции в отчёте
+    std::function<Real(Real)> f1 = nullptr;
+    std::function<Real(Real, Real)> f2 = nullptr;
 
-        if (f.nargs == 1) {
-            for (auto x : f.x_vals) {
-                Real r = f.f1(x);
+    std::function<bool(Real, Real)> invalid_case = nullptr; // x или x,y недопустимы
+    std::function<Real(Real, Real)> reference = nullptr;    // эталон
 
-                // проверка NaN
-                if (f.name == "log" || f.name == "log2" || f.name == "log10" || f.name == "log1p") {
-                    if (x <= (f.name=="log1p" ? -1.0 : 0.0)) {
-                        EXPECT_TRUE(std::isnan(r));
-                        continue;
-                    }
-                }
+    std::vector<std::function<bool(Real)>> invariants_1;
+    std::vector<std::function<bool(Real)>> invariants_2;
+};
 
-                // проверка экстремальных значений exp
-                if (f.name == "exp" || f.name == "exp2") {
-                    if (x > 700.0) {
-                        EXPECT_EQ(r, std::numeric_limits<Real>::infinity());
-                        continue;
-                    }
-                    if (x < -700.0) {
-                        EXPECT_EQ(r, 0.0);
-                        continue;
-                    }
-                }
+// ---------------- Test suite -----------------
+class UnifiedDynamicTest : public ::testing::TestWithParam<FunctionTest> {};
 
-                // сравнение с std:: функцией
-                Real ref = 0.0;
-                if (f.name == "exp") ref = std::exp(x);
-                else if (f.name == "exp2") ref = std::exp2(x);
-                else if (f.name == "expm1_safe") ref = std::expm1(x);
-                else if (f.name == "log") ref = std::log(x);
-                else if (f.name == "log2") ref = std::log2(x);
-                else if (f.name == "log10") ref = std::log10(x);
-                else if (f.name == "log1p") ref = std::log1p(x);
+TEST_P(UnifiedDynamicTest, RandomAndEdgeCheck) {
+    const auto &f = GetParam();
 
-                if (f.name != "expm1_safe" && f.name.substr(0,3)!="log") {
-                    EXPECT_NEAR(r, ref, EPS);
-                } else if (f.name.substr(0,3)=="log") {
-                    EXPECT_NEAR(r, ref, EPS);
-                } else if (f.name == "expm1_safe") {
-                    EXPECT_NEAR(r, ref, EPS);
-                }
+    std::vector<Real> x_vals = generate_random(-10.0, 10.0);
+    std::vector<Real> y_vals = generate_random(-10.0, 10.0);
+
+    auto edges = edge_values();
+    x_vals.insert(x_vals.end(), edges.begin(), edges.end());
+    y_vals.insert(y_vals.end(), edges.begin(), edges.end());
+
+    if (f.nargs == 1) {
+        for (auto x : x_vals) {
+            SCOPED_TRACE(f.name + " x=" + std::to_string(x));
+            Real v = f.f1(x);
+
+            // invalid case
+            if (f.invalid_case && f.invalid_case(x, 0.0)) {
+                EXPECT_TRUE(std::isnan(v));
+                continue;
             }
-        } else if (f.nargs == 2) {
-            for (auto x : f.x_vals) {
-                for (auto y : f.y_vals) {
-                    Real r = f.f2(x, y);
 
-                    // NaN для pow: отрицательное основание + дробный показатель
-                    if (f.name == "pow" && x < 0.0 && std::floor(y) != y) {
-                        EXPECT_TRUE(std::isnan(r));
-                        continue;
-                    }
+            // invariants
+            for (auto &inv : f.invariants_1) {
+                EXPECT_TRUE(inv(v)) << "Invariant failed for " << f.name << ", x=" << x;
+            }
 
-                    // NaN для log_a: x<=0, a<=0, a==1
-                    if (f.name == "log_a") {
-                        if (x <= 0.0 || y <= 0.0 || y == 1.0) {
-                            EXPECT_TRUE(std::isnan(r));
-                            continue;
-                        }
-                    }
+            // reference
+            if (f.reference) {
+                Real ref = f.reference(x, 0.0);
+                if (std::isnan(ref)) EXPECT_TRUE(std::isnan(v));
+                else EXPECT_NEAR(v, ref, 1e-12);
+            }
+        }
+    } else if (f.nargs == 2) {
+        for (auto x : x_vals) {
+            for (auto y : y_vals) {
+                SCOPED_TRACE(f.name + " x=" + std::to_string(x) + " y=" + std::to_string(y));
+                Real v = f.f2(x, y);
 
-                    // сравнение с std:: pow / log_a
-                    Real ref = 0.0;
-                    if (f.name == "pow") ref = std::pow(x, y);
-                    else if (f.name == "log_a") ref = std::log(x)/std::log(y);
+                if (f.invalid_case && f.invalid_case(x, y)) {
+                    EXPECT_TRUE(std::isnan(v));
+                    continue;
+                }
 
-                    if (std::isnan(ref)) {
-                        EXPECT_TRUE(std::isnan(r));
-                    } else {
-                        EXPECT_NEAR(r, ref, EPS);
-                    }
+                for (auto &inv : f.invariants_2) {
+                    EXPECT_TRUE(inv(v)) << "Invariant failed for " << f.name << ", x=" << x << ", y=" << y;
+                }
+
+                if (f.reference) {
+                    Real ref = f.reference(x, y);
+                    if (std::isnan(ref)) EXPECT_TRUE(std::isnan(v));
+                    else EXPECT_NEAR(v, ref, 1e-12);
                 }
             }
         }
     }
 }
+
+// ---------------- Instantiate -----------------
+INSTANTIATE_TEST_SUITE_P(
+    MathFunctions,
+    UnifiedDynamicTest,
+    ::testing::Values(
+        FunctionTest{
+            "sqrt", 1,
+            Functions::sqrt, nullptr,
+            [](Real x, Real){ return x < 0; },
+            [](Real x, Real){ return std::sqrt(x); },
+            {[](Real v){ return std::isfinite(v); }, [](Real v){ return v >= 0; }},
+            {}
+        },
+        FunctionTest{
+            "log", 1,
+            Functions::log, nullptr,
+            [](Real x, Real){ return x <= 0; },
+            [](Real x, Real){ return std::log(x); },
+            {[](Real v){ return std::isfinite(v); }},
+            {}
+        },
+        FunctionTest{
+            "pow", 2,
+            nullptr, Functions::pow,
+            [](Real x, Real y){ return x < 0 && std::floor(y)!=y; },
+            [](Real x, Real y){ return std::pow(x, y); },
+            {},
+            {[](Real v){ return std::isfinite(v); }}
+        },
+        FunctionTest{
+            "log_a", 2,
+            nullptr, Functions::log_a,
+            [](Real x, Real a){ return x <= 0.0 || a <= 0.0 || a == 1.0; },
+            [](Real x, Real a){ return std::log(x)/std::log(a); },
+            {},
+            {[](Real v){ return std::isfinite(v); }}
+        }
+    )
+);

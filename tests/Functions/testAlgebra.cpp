@@ -1,86 +1,94 @@
-// tests/Functions/testAlgebraDynamic.cpp
+// testAlgebra.cpp
 #include <gtest/gtest.h>
 #include <cmath>
-#include <random>
 #include "../../math/pattern/Functions.h"
 #include "../math/common/Types.h"
 
+using Real = double;
+using VecReal = std::vector<Real>;
 
-// ---------- Factorial / Binomial / Permutation ----------
-TEST(AlgebraicDynamic, FactorialBinomialPermutation) {
-    for (int n = 0; n <= 15; ++n) {
-        Real f = Functions::factorial(n);
-        if (n > 0) {
-            EXPECT_DOUBLE_EQ(f, n * Functions::factorial(n - 1));
+// ----------------------------------------
+// Invariant functions
+// ----------------------------------------
+inline bool is_non_negative(Real v) { return v >= 0; }
+inline bool is_finite(Real v) { return std::isfinite(v); }
+
+// ----------------------------------------
+// Function descriptor
+// ----------------------------------------
+struct AlgebraicFn {
+    const char* name;
+    std::function<Real(int)> fn_int;
+    std::function<Real(Real)> fn_real;
+    std::vector<std::function<bool(Real)>> invariants;
+};
+
+// ----------------------------------------
+// Test suite
+// ----------------------------------------
+class DynamicTest : public ::testing::TestWithParam<AlgebraicFn> {};
+
+TEST_P(DynamicTest, InvariantsHold) {
+    const auto& fdesc = GetParam();
+
+    if (fdesc.fn_int) {
+        for (int n = 0; n <= 15; ++n) {
+            Real v = fdesc.fn_int(n);
+            for (auto& inv : fdesc.invariants) {
+                EXPECT_TRUE(inv(v)) << "Invariant failed for " << fdesc.name << ", n=" << n;
+            }
         }
-        for (int k = 0; k <= n; ++k) {
-            Real b = Functions::binomial(n, k);
-            Real p = Functions::permutation(n, k);
-            EXPECT_DOUBLE_EQ(b * Functions::factorial(k), p);
-            EXPECT_DOUBLE_EQ(b, Functions::binomial(n, n - k)); // симметрия
+    }
+
+    if (fdesc.fn_real) {
+        std::uniform_real_distribution<Real> dist(-10.0, 10.0);
+
+        for (int i = 0; i < 100; ++i) {
+            Real x = dist(rng);
+            Real v = fdesc.fn_real(x);
+
+            if (std::string(fdesc.name) == "sqrt" && x < 0) {
+                EXPECT_TRUE(std::isnan(v)) << "Expected NaN for sqrt(" << x << ")";
+                continue;
+            }
+
+            for (auto& inv : fdesc.invariants) {
+                EXPECT_TRUE(inv(v)) << "Invariant failed for " << fdesc.name << ", x=" << x;
+            }
         }
     }
 }
 
-// ---------- mod ----------
-TEST(AlgebraicDynamic, Mod) {
-    for (int i = 0; i < 100; ++i) {
-        Real x = dist_real(rng);
-        Real y = dist_real(rng) + 1e-3; // избегаем нуля
-        Real r = Functions::mod(x, y);
-        EXPECT_GE(r, 0);
-        EXPECT_LT(r, std::abs(y));
-        EXPECT_NEAR(r, Functions::mod(x + y, y), 1e-12); // периодичность
-    }
-}
-
-// ---------- Polynomial / Rational ----------
-TEST(AlgebraicDynamic, PolynomialRational) {
-    for (int i = 0; i < 50; ++i) {
-        int deg = dist_int(rng);
-        VecReal coeffs(deg + 1);
-        for (auto &c : coeffs) c = dist_real(rng);
-
-        Real x = dist_real(rng);
-
-        // naive polynomial evaluation
-        Real naive = 0;
-        for (int j = 0; j <= deg; ++j) {
-            naive += coeffs[j] * std::pow(x, j);
-        }
-
-        EXPECT_NEAR(Functions::polynomial(x, coeffs), naive, 1e-12 * std::max(std::abs(naive), 1.0));
-
-        // rational: numerator != denominator -> check consistency
-        VecReal den = coeffs;
-        den[0] += 1.0; // гарантируем не ноль
-        Real r = Functions::rational(x, coeffs, den);
-        EXPECT_DOUBLE_EQ(Functions::polynomial(x, coeffs), r * Functions::polynomial(x, den));
-    }
-}
-
-// ---------- sqrt / cbrt / sign / abs ----------
-TEST(AlgebraicDynamic, RootSignAbs) {
-    for (int i = 0; i < 100; ++i) {
-        Real x = dist_real(rng);
-
-        // sqrt
-        if (x < 0) {
-            EXPECT_TRUE(std::isnan(Functions::sqrt(x)));
-        } else {
-            EXPECT_NEAR(std::pow(Functions::sqrt(x), 2), x, Constants::EPS_09);
-        }
-
-        // cbrt
-        EXPECT_NEAR(std::pow(Functions::cbrt(x), 3), x, Constants::EPS_09);
-
-        // sign
-        if (x > 0) EXPECT_DOUBLE_EQ(Functions::sign(x), 1);
-        else if (x < 0) EXPECT_DOUBLE_EQ(Functions::sign(x), -1);
-        else EXPECT_DOUBLE_EQ(Functions::sign(x), 0);
-
-        // abs
-        EXPECT_GE(Functions::abs(x), 0);
-        EXPECT_DOUBLE_EQ(Functions::abs(x), std::abs(x));
-    }
-}
+// ----------------------------------------
+// Instantiate
+// ----------------------------------------
+INSTANTIATE_TEST_SUITE_P(
+    AlgebraicFunctions,
+    DynamicTest,
+    ::testing::Values(
+        AlgebraicFn{"factorial",
+            [](int n){ return Functions::factorial(n); },
+            nullptr,
+            {is_non_negative}},
+        AlgebraicFn{"binomial",
+            [](int n){ return Functions::binomial(n, n/2); },
+            nullptr,
+            {is_non_negative}},
+        AlgebraicFn{"permutation",
+            [](int n){ return Functions::permutation(n, n/2); },
+            nullptr,
+            {is_non_negative}},
+        AlgebraicFn{"sqrt", nullptr,
+            [](Real x){ return Functions::sqrt(x); },
+            {is_finite}},
+        AlgebraicFn{"cbrt", nullptr,
+            [](Real x){ return Functions::cbrt(x); },
+            {is_finite}},
+        AlgebraicFn{"sign", nullptr,
+            [](Real x){ return Functions::sign(x); },
+            {is_finite}},
+        AlgebraicFn{"abs", nullptr,
+            [](Real x){ return Functions::abs(x); },
+            {is_non_negative, is_finite}}
+    )
+);

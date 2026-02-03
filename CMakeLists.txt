@@ -60,6 +60,8 @@ add_executable(testME
         tests/Functions/testStatSampling.cpp
         tests/Functions/testStatRegression.cpp
         tests/Functions/testOutliers.cpp
+        tests/Functions/testStatTests.cpp
+        tests/Functions/uniTest.cpp
 )
 
 target_compile_definitions(DesktopScenes PRIVATE
