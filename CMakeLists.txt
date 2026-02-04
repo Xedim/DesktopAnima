@@ -34,6 +34,8 @@ add_library(MathCore
         math/pattern/PatternInit.h
         math/pattern/Functions.h
         math/pattern/Functions.cpp
+        math/analytics/Analytics.h
+        math/analytics/Analytics.cpp
 )
 
 add_executable(testME

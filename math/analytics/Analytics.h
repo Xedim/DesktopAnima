@@ -50,6 +50,6 @@ namespace Analytics {
     bool isNonNegative(const Function1D& f, Real x,
                         StabPolicy policy = StabPolicy::Reject);
 
-    bool isContinuous(const Function1D& f, Real x, Real h = Constants::H,
+    bool isContinuous(const Function1D& f, Real x, Real h = Constants::H, Real eps = Constants::EPS_09,
                         StabPolicy policy = StabPolicy::Reject);
 }

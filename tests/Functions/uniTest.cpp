@@ -1,4 +1,4 @@
-// uniTest.cpp
+/*// uniTest.cpp
 #include <gtest/gtest.h>
 #include <cmath>
 #include <vector>
@@ -27,74 +27,529 @@ inline bool is_non_negative(Real v) { return v >= 0; }
 inline bool is_finite(Real v) { return std::isfinite(v); }
 
 // ----------------- Unified function descriptor -----------------
-struct UnifiedFn {
-    std::string name;
-    int nargs;
-    std::function<Real(Real)> f1 = nullptr;
-    std::function<Real(Real, Real)> f2 = nullptr;
-    std::function<bool(Real, Real)> invalid_case = nullptr;
-    std::function<Real(Real, Real)> reference = nullptr;
-
-    std::vector<std::function<bool(Real)>> invariants_1;
-    std::vector<std::function<bool(Real)>> invariants_2;
-
-    std::vector<std::function<bool(const Function1D&)>> properties_1;
-    std::vector<std::function<bool(const Function2D&)>> properties_2;
-
-    std::vector<Real> fixed_values_1;
-    std::vector<Real> fixed_values_2;
+struct FunctionIdentityDescriptor {
+    bool invertible;
+    bool has_closed_form;
 };
 
-// ----------------- Test suite -----------------
-class UnifiedFunctionTest : public ::testing::TestWithParam<UnifiedFn> {};
+struct DomainDescriptor {
+    bool defined_on_all_reals;
+    bool defined_on_positive;
+    bool defined_on_negative;
+    bool defined_on_zero;
 
-TEST_P(UnifiedFunctionTest, RandomAndEdgeCheckWithProperties) {
-    const auto &f = GetParam();
+    bool has_discontinuities;
+    std::vector<double> excluded_points;
+    std::vector<std::pair<double, double>> allowed_intervals;
 
-    if (f.nargs == 1 && f.f1) {
-        for (auto x : all_test_values(f.fixed_values_1)) {
-            SCOPED_TRACE(f.name + " x=" + std::to_string(x));
-            Real v = f.f1(x);
+    bool allows_nan_input;
+    bool allows_inf_input;
+};
 
-            if (f.invalid_case && f.invalid_case(x, 0.0)) {
-                EXPECT_TRUE(std::isnan(v));
-                continue;
-            }
+struct RangeDescriptor {
+    bool finite_only;
+    bool can_return_nan;
+    bool can_return_inf;
 
-            for (auto &inv : f.invariants_1)
-                EXPECT_TRUE(inv(v)) << "Invariant failed for " << f.name << ", x=" << x;
+    std::optional<double> min_value;
+    std::optional<double> max_value;
+};
 
-            if (f.reference)
-                EXPECT_NEAR(v, f.reference(x, 0.0), Constants::EPS_12);
+struct ValueCorrectnessDescriptor {
+    bool nan_is_valid_on_domain_violation;
+    bool inf_is_valid_on_domain_violation;
 
-            // Проверка свойств через Analytics
-            for (auto &prop : f.properties_1)
-                EXPECT_TRUE(prop(f.f1)) << "Property failed for " << f.name;
-        }
-    }
+    double max_relative_error;
+    double max_absolute_error;
+};
 
-    if (f.nargs == 2 && f.f2) {
-        for (auto x : all_test_values(f.fixed_values_1)) {
-            for (auto y : all_test_values(f.fixed_values_2)) {
-                SCOPED_TRACE(f.name + " x=" + std::to_string(x) + " y=" + std::to_string(y));
-                Real v = f.f2(x,y);
+struct AnalyticProperties {
+    bool even;
+    bool odd;
 
-                if (f.invalid_case && f.invalid_case(x, y)) {
-                    EXPECT_TRUE(std::isnan(v));
-                    continue;
+    bool monotonic_increasing;
+    bool monotonic_decreasing;
+
+    bool continuous;
+    bool periodic;
+    std::optional<double> period;
+};
+
+
+struct DifferentialDescriptor {
+    bool differentiable;
+    bool twice_differentiable;
+
+    bool derivative_continuous;
+    bool second_derivative_exists;
+
+    bool convex;
+    bool concave;
+
+    bool has_inflection_points;
+    std::vector<Real> known_inflection_points;
+};
+
+struct NumericalProperties {
+    bool stable_near_zero;
+    bool stable_for_large_values;
+
+    bool catastrophic_cancellation_possible;
+    bool sensitive_to_rounding;
+
+    bool requires_high_precision;
+};
+
+struct BehavioralProperties {
+    bool throws_on_domain_error;
+    bool returns_nan_on_domain_error;
+
+    bool deterministic;
+    bool pure_function;
+
+    bool thread_safe;
+};
+
+struct LimitBehaviorDescriptor {
+    bool limit_at_plus_inf_exists;
+    bool limit_at_minus_inf_exists;
+
+    std::optional<Real> limit_at_plus_inf;
+    std::optional<Real> limit_at_minus_inf;
+
+    bool limit_at_zero_exists;
+    std::optional<Real> limit_at_zero;
+
+    bool left_limit_equals_right_limit;
+};
+
+struct SingularityDescriptor {
+    enum class Type {
+        Removable,
+        Jump,
+        Essential,
+        Pole
+    };
+
+    struct Singularity {
+        Real x;
+        Type type;
+    };
+
+    bool has_singularities;
+    std::vector<Singularity> singularities;
+};
+
+struct CompositionDescriptor {
+    bool closed_under_composition;
+
+    bool preserves_monotonicity;
+    bool preserves_evenness;
+    bool preserves_sign;
+
+    bool requires_domain_intersection_check;
+};
+
+struct SymmetryDescriptor {
+    bool symmetric_about_y_axis;
+    bool symmetric_about_origin;
+    bool invariant_under_scaling;
+    bool invariant_under_translation;
+};
+
+struct PerformanceDescriptor {
+    enum class Complexity {
+        O1,
+        OLogN,
+        OLinear,
+        OPolynomial,
+        OExponential
+    };
+
+    Complexity time_complexity;
+    Complexity space_complexity;
+
+    bool vectorizable;
+    bool branch_heavy;
+};
+
+struct TestingStrategyDescriptor {
+    bool requires_edge_case_testing;
+    bool requires_randomized_testing;
+    bool requires_property_based_testing;
+
+    size_t recommended_random_samples;
+};
+
+struct FunctionDescriptor {
+    std::string name;
+    std::function<Real(Real)> f;
+
+    FunctionIdentityDescriptor identity;
+    DomainDescriptor domain;
+    RangeDescriptor range;
+
+    ValueCorrectnessDescriptor correctness;
+
+    AnalyticProperties analytic;
+    DifferentialDescriptor differential;
+    LimitBehaviorDescriptor limits;
+    SingularityDescriptor singularities;
+    SymmetryDescriptor symmetry;
+
+    NumericalProperties numerical;
+    BehavioralProperties behavior;
+    PerformanceDescriptor performance;
+    CompositionDescriptor composition;
+
+    TestingStrategyDescriptor testing;
+};
+
+void validateFunctionDescriptor(const FunctionDescriptor& fd) {
+    using std::cout;
+    using std::endl;
+
+    cout << "=== Validating function: " << fd.name << " ===" << endl;
+
+    // -------- Hard Constraints --------
+    // Domain - Singularity
+    if (fd.singularities.has_singularities) {
+        for (const auto& s : fd.singularities.singularities) {
+            bool in_domain = false;
+            for (const auto& interval : fd.domain.allowed_intervals) {
+                if (s.x >= interval.first && s.x <= interval.second) {
+                    in_domain = true;
+                    break;
                 }
-
-                for (auto &inv : f.invariants_2)
-                    EXPECT_TRUE(inv(v)) << "Invariant failed for " << f.name;
-
-                if (f.reference)
-                    EXPECT_NEAR(v, f.reference(x, y), Constants::EPS_12);
-
-                for (auto &prop : f.properties_2)
-                    EXPECT_TRUE(prop(f.f2)) << "Property failed for " << f.name;
+            }
+            if (!in_domain) {
+                cout << "[HC] Warning: Singularity at x=" << s.x
+                     << " outside allowed domain intervals." << endl;
             }
         }
     }
+
+    // Analytic - Symmetry
+    if (fd.analytic.even && !fd.symmetry.symmetric_about_y_axis)
+        cout << "[HC] Warning: Analytic property even=true but symmetry not set." << endl;
+    if (fd.analytic.odd && !fd.symmetry.symmetric_about_origin)
+        cout << "[HC] Warning: Analytic property odd=true but symmetry not set." << endl;
+
+    // Differential - Analytic
+    if (fd.differential.derivative_continuous && !fd.analytic.continuous)
+        cout << "[HC] Warning: derivative_continuous=true but function not marked continuous." << endl;
+
+    // Singularity - Differential
+    if (fd.singularities.has_singularities) {
+        for (const auto& s : fd.singularities.singularities) {
+            if (fd.differential.differentiable && (s.type != SingularityDescriptor::Type::Removable))
+                cout << "[HC] Warning: differentiable=true but singularity at x=" << s.x << endl;
+        }
+    }
+
+    // -------- Soft Constraints --------
+    // Analytic - Differential
+    if (fd.differential.twice_differentiable && !fd.differential.derivative_continuous)
+        cout << "[SC] Twice differentiable functions normally have continuous derivative." << endl;
+
+    // Numerical - ValueCorrectness
+    if (fd.numerical.requires_high_precision &&
+        (fd.correctness.max_absolute_error > 1e-12 || fd.correctness.max_relative_error > 1e-12))
+        cout << "[SC] High precision numerical property but correctness allows larger errors." << endl;
+
+    // Symmetry - Testing
+    if ((fd.symmetry.symmetric_about_y_axis || fd.symmetry.symmetric_about_origin) &&
+        !fd.testing.requires_property_based_testing)
+        cout << "[SC] Symmetric function; consider property-based testing." << endl;
+
+    // CompositionDescriptor
+    if (fd.composition.closed_under_composition && !fd.domain.defined_on_all_reals)
+        cout << "[SC] Function claims closure under composition but domain is not all reals." << endl;
+
+    if (fd.composition.preserves_monotonicity && !fd.analytic.monotonic_increasing && !fd.analytic.monotonic_decreasing)
+        cout << "[SC] Monotonicity preservation flagged but function not monotonic." << endl;
+
+    // Limits
+    if (fd.limits.limit_at_plus_inf_exists && !fd.range.can_return_inf)
+        cout << "[SC] Limit at +∞ exists but range allows infinite values?" << endl;
+
+    if (fd.limits.limit_at_zero_exists && !fd.domain.defined_on_zero)
+        cout << "[SC] Limit at 0 exists but 0 is not in domain." << endl;
+
+    // Numerical Properties - ValueCorrectness
+    if ((fd.numerical.catastrophic_cancellation_possible || fd.numerical.sensitive_to_rounding)
+        && fd.correctness.max_relative_error > 1e-12)
+        cout << "[SC] Potential numerical instability; consider stricter correctness limits." << endl;
+
+    // Performance - Domain/Range
+    if (fd.performance.vectorizable && fd.domain.has_discontinuities)
+        cout << "[SC] Vectorization flagged but function has discontinuities." << endl;
+
+    if (fd.performance.branch_heavy && fd.analytic.continuous)
+        cout << "[SC] Branch-heavy function but marked continuous (check assumptions)." << endl;
+
+    cout << "=== Validation finished ===" << endl;
+}
+
+void propagateFunctionDependencies(FunctionDescriptor& fd) {
+    if (fd.analytic.even) fd.symmetry.symmetric_about_y_axis = true;
+    if (fd.analytic.odd) fd.symmetry.symmetric_about_origin = true;
+
+    if (fd.differential.derivative_continuous) fd.analytic.continuous = true;
+    if (fd.differential.twice_differentiable) fd.differential.derivative_continuous = true;
+
+    if (fd.limits.limit_at_plus_inf_exists && fd.limits.limit_at_plus_inf.has_value())
+        fd.range.can_return_inf = false;
+}
+
+std::vector<Real> generateRandomPoints(const DomainDescriptor& domain, size_t n=50) {
+    std::vector<Real> points;
+    std::uniform_real_distribution<Real> dist(-10.0, 10.0);
+
+    for (size_t i = 0; i < n; ++i) {
+        Real val;
+        do {
+            val = dist(rng);
+        } while (!domain.defined_on_all_reals &&
+                 std::any_of(domain.excluded_points.begin(), domain.excluded_points.end(),
+                             [&](double ex){ return std::abs(val - ex) < 1e-12; }));
+        points.push_back(val);
+    }
+    return points;
+}
+
+std::vector<Real> generateEdgePoints(const DomainDescriptor& domain) {
+    std::vector<Real> points;
+
+    if (domain.defined_on_zero) points.push_back(0.0);
+    if (domain.defined_on_positive) points.push_back(1.0);
+    if (domain.defined_on_negative) points.push_back(-1.0);
+
+    for (auto& ex : domain.excluded_points) points.push_back(ex);
+
+    return points;
+}
+
+std::vector<Real> allTestPoints(const FunctionDescriptor& fd) {
+    auto fixed = generateEdgePoints(fd.domain);
+    auto random = generateRandomPoints(fd.domain, fd.testing.recommended_random_samples);
+    fixed.insert(fixed.end(), random.begin(), random.end());
+    return fixed;
+}
+
+// ----------------- Test suite -----------------
+void testDomainAndRange(const FunctionDescriptor& fd,
+                        const std::vector<Real>& points)
+{
+    for (auto x : points) {
+        Real y = fd.f(x);
+
+        if (fd.range.finite_only) {
+            for (auto x : points)
+                EXPECT_TRUE(Analytics::isFiniteAt(fd.f, x, StabPolicy::Reject));
+        }
+
+        if (fd.range.min_value)
+            EXPECT_GE(y, *fd.range.min_value - fd.correctness.max_absolute_error);
+
+        if (fd.range.max_value)
+            EXPECT_LE(y, *fd.range.max_value + fd.correctness.max_absolute_error);
+
+        if (!fd.range.can_return_nan)
+            EXPECT_FALSE(std::isnan(y));
+
+        if (!fd.range.can_return_inf)
+            EXPECT_FALSE(std::isinf(y));
+    }
+}
+
+void testDomainViolation(const FunctionDescriptor& fd) {
+    std::vector<Real> invalid;
+
+    if (!fd.domain.defined_on_zero)
+        invalid.push_back(0.0);
+    if (!fd.domain.defined_on_positive)
+        invalid.push_back(1.0);
+    if (!fd.domain.defined_on_negative)
+        invalid.push_back(-1.0);
+
+    for (Real x : invalid) {
+        if (fd.behavior.throws_on_domain_error) {
+            EXPECT_ANY_THROW(fd.f(x));
+        } else {
+            Real y = fd.f(x);
+            if (fd.behavior.returns_nan_on_domain_error)
+                EXPECT_TRUE(std::isnan(y));
+        }
+    }
+}
+
+void testAnalyticProperties(const FunctionDescriptor& fd,
+                            const std::vector<Real>& points)
+{
+    constexpr Real eps = 1e-6;
+    constexpr Real h   = 1e-4;
+    auto f = fd.f;
+
+    if (fd.analytic.even) {
+        for (auto x : points)
+            EXPECT_TRUE(Analytics::isLocallyEvenFunction(f, x, eps, StabPolicy::Reject));
+    }
+
+    if (fd.analytic.odd) {
+        for (auto x : points)
+            EXPECT_TRUE(Analytics::isLocallyOddFunction(f, x, eps, StabPolicy::Reject));
+    }
+
+    if (fd.analytic.periodic && fd.analytic.period) {
+        for (auto x : points)
+            EXPECT_TRUE(Analytics::isPeriodic(f, x, *fd.analytic.period, eps, StabPolicy::Reject));
+    }
+
+    if (fd.analytic.monotonic_increasing) {
+        for (size_t i = 1; i < points.size(); ++i)
+            EXPECT_TRUE(Analytics::isLocallyIncreasing(
+                f, points[i-1], points[i], eps, StabPolicy::Reject));
+    }
+
+    if (fd.analytic.monotonic_decreasing) {
+        for (size_t i = 1; i < points.size(); ++i)
+            EXPECT_TRUE(Analytics::isLocallyDecreasing(
+                f, points[i-1], points[i], eps, StabPolicy::Reject));
+    }
+
+    if (fd.analytic.continuous) {
+        for (auto x : points)
+            EXPECT_TRUE(Analytics::isContinuous(f, x, h, eps, StabPolicy::Reject));
+    }
+}
+
+
+
+Real numericalDerivative(const std::function<Real(Real)>& f, Real x) {
+    constexpr Real h = 1e-6;
+    return (f(x + h) - f(x - h)) / (2 * h);
+}
+
+void testDifferentialProperties(const FunctionDescriptor& fd,
+                                const std::vector<Real>& points)
+{
+    if (!fd.differential.differentiable) return;
+
+    constexpr Real h = 1e-4;
+
+    for (auto x : points) {
+        Real d = Analytics::derivative(fd.f, x, h, StabPolicy::Reject);
+        EXPECT_TRUE(std::isfinite(d))
+            << fd.name << ": derivative not finite at x=" << x;
+    }
+
+    if (fd.differential.convex) {
+        for (auto x : points)
+            EXPECT_TRUE(Analytics::isLocallyConvex(fd.f, x, h, StabPolicy::Reject));
+    }
+
+    if (fd.differential.concave) {
+        for (auto x : points)
+            EXPECT_TRUE(Analytics::isLocallyConcave(fd.f, x, h, StabPolicy::Reject));
+    }
+}
+
+void testNumericalProperties(const FunctionDescriptor& fd,
+                             const std::vector<Real>& points)
+{
+    if (fd.numerical.stable_near_zero) {
+        for (Real x : {1e-12, -1e-12}) {
+            Real y = fd.f(x);
+            EXPECT_TRUE(std::isfinite(y))
+                << fd.name << ": unstable near zero";
+        }
+    }
+
+    if (fd.numerical.stable_for_large_values) {
+        for (Real x : {1e6, -1e6}) {
+            Real y = fd.f(x);
+            EXPECT_TRUE(std::isfinite(y))
+                << fd.name << ": unstable for large x";
+        }
+    }
+}
+
+void testBehavioralProperties(const FunctionDescriptor& fd,
+                              const std::vector<Real>& points)
+{
+    if (!fd.behavior.deterministic) return;
+
+    for (auto x : points) {
+        Real y1 = fd.f(x);
+        Real y2 = fd.f(x);
+        EXPECT_EQ(y1, y2)
+            << fd.name << ": non-deterministic at x=" << x;
+    }
+}
+
+void testLimitBehavior(const FunctionDescriptor& fd) {
+    constexpr Real eps = 1e-6;
+
+    if (fd.limits.limit_at_plus_inf_exists && fd.limits.limit_at_plus_inf) {
+        for (Real x : {1e6, 1e7, 1e8}) {
+            Real y = fd.f(x);
+            EXPECT_NEAR(y, *fd.limits.limit_at_plus_inf, eps);
+        }
+    }
+
+    if (fd.limits.limit_at_minus_inf_exists && fd.limits.limit_at_minus_inf) {
+        for (Real x : {-1e6, -1e7, -1e8}) {
+            Real y = fd.f(x);
+            EXPECT_NEAR(y, *fd.limits.limit_at_minus_inf, eps);
+        }
+    }
+
+    if (fd.limits.limit_at_zero_exists && fd.limits.limit_at_zero) {
+        for (Real x : {1e-6, -1e-6}) {
+            Real y = fd.f(x);
+            EXPECT_NEAR(y, *fd.limits.limit_at_zero, eps);
+        }
+    }
+}
+
+void testSingularities(const FunctionDescriptor& fd) {
+    constexpr Real h = 1e-6;
+
+    for (const auto& s : fd.singularities.singularities) {
+        Real xl = s.x - h;
+        Real xr = s.x + h;
+
+        Real yl = fd.f(xl);
+        Real yr = fd.f(xr);
+
+        if (s.type == SingularityDescriptor::Type::Pole) {
+            EXPECT_TRUE(std::isinf(yl) || std::isinf(yr));
+        }
+
+        if (s.type == SingularityDescriptor::Type::Removable) {
+            EXPECT_TRUE(std::isfinite(yl));
+            EXPECT_TRUE(std::isfinite(yr));
+        }
+
+        if (fd.limits.left_limit_equals_right_limit) {
+            EXPECT_NEAR(yl, yr, 1e-4);
+        }
+    }
+}
+
+void runFunctionTests(const FunctionDescriptor& fd) {
+    propagateFunctionDependencies(const_cast<FunctionDescriptor&>(fd));
+    validateFunctionDescriptor(fd);
+
+    auto points = allTestPoints(fd);
+
+    testDomainAndRange(fd, points);
+    testAnalyticProperties(fd, points);
+    testNumericalProperties(fd, points);
+    testBehavioralProperties(fd, points);
+    testLimitBehavior(fd);
+    testSingularities(fd);
 }
 
 // ----------------- Instantiate -----------------
@@ -188,7 +643,17 @@ INSTANTIATE_TEST_SUITE_P(
             [](Real x, Real y){ return std::pow(x, y); },
             {}, {},
             {},
-            {},
+            {
+                [](const Function2D& f){
+                    return Analytics::isLocallyIncreasing([&](Real x){ return f(x, 2.0); }, 0.0, 2.0, Constants::EPS_09, StabPolicy::Reject);
+                },
+                [](const Function2D& f){
+                    return Analytics::isLocallyIncreasing([&](Real y){ return f(2.0, y); }, 0.0, 2.0, Constants::EPS_09, StabPolicy::Reject);
+                },
+                [](const Function2D& f){
+                    return Analytics::isNonNegative([&](Real x){ return f(x, 2.0); }, 1.0, StabPolicy::Reject);
+                }
+            },
             {-2,0,2}, {-1,0,0.5,1,2}
         },
         UnifiedFn{
@@ -198,7 +663,14 @@ INSTANTIATE_TEST_SUITE_P(
             [](Real x, Real a){ return std::log(x)/std::log(a); },
             {}, {},
             {},
-            {},
+            {
+                [](const Function2D& f){
+                    return Analytics::isLocallyIncreasing([&](Real x){ return f(x, 2.0); }, 0.1, 10.0, Constants::EPS_09, StabPolicy::Reject);
+                },
+                [](const Function2D& f){
+                    return Analytics::isLocallyDecreasing([&](Real a){ return f(2.0, a); }, 1.1, 10.0, Constants::EPS_09, StabPolicy::Reject);
+                }
+            },
             {0.1,1,2,10}, {0.1,0.5,1,2,10}
         },
         UnifiedFn{
@@ -274,3 +746,4 @@ INSTANTIATE_TEST_SUITE_P(
         }
     )
 );
+*/

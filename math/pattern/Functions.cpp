@@ -25,11 +25,21 @@
 
 namespace Functions {
 
+    // ===========================================
+    // ================= Sign ====================
+    // ===========================================
+
+    [[nodiscard]] Real sign(Real x) {
+        return (x > 0) ? Real{1} : (x < 0 ? Real{-1} : Real{0});
+    }
+
+    [[nodiscard]] Real abs(Real x) { return std::abs(x); }
+
+    [[nodiscard]] Real heaviside(Real x) { return x < 0.0 ? 0.0 : 1.0; }
+
     // =============================================
     // ================= Algebraic =================
     // =============================================
-
-    [[nodiscard]] Real abs(Real x) { return std::abs(x); }
 
     [[nodiscard]] Real factorial(int n) {
         if (n < 0) return NaN();
@@ -88,16 +98,9 @@ namespace Functions {
         return num / den;
     }
 
-    [[nodiscard]] Real sqrt(Real x) { return x < Real{0} ? NaN() : std::sqrt(x); }
-    [[nodiscard]] Real cbrt(Real x) { return std::cbrt(x); }
-
-    [[nodiscard]] Real sign(Real x) {
-        return (x > 0) ? Real{1} : (x < 0 ? Real{-1} : Real{0});
-    }
-
-    // =======================================================
-    // ================= Power / Exponential =================
-    // =======================================================
+    // ================================================
+    // ================= Power / Root =================
+    // ================================================
 
     struct PowCache {
         std::array<Real, 21> values{};
@@ -136,6 +139,37 @@ namespace Functions {
         return std::pow(x, alpha);
     }
 
+    [[nodiscard]] Real x_pow_y(Real x, Real y) {
+        if (x == 0.0) return (y > 0.0) ? 0.0 : NaN(); // 0^y
+        if (x == 1.0 || y == 0.0) return 1.0;         // 1^y, x^0
+        if (y == 1.0) return x;                        // x^1
+        if (x > 0.0) return std::exp(y * std::log(x));
+        return NaN();
+    }
+
+    [[nodiscard]] Real algebraic_root(Real x, const VecReal& coefficients) {
+        Real poly = Real{0};
+        for (const Real& c : std::views::reverse(coefficients)) {
+            poly = poly * x + c;
+        }
+        if (poly < 0) return NaN();
+        return std::sqrt(poly);
+    }
+
+    [[nodiscard]] Real sqrt(Real x) { return x < Real{0} ? NaN() : std::sqrt(x); }
+
+    [[nodiscard]] Real sqrt1pm1(Real x) {
+        if (x < -1.0) return NaN();
+        if (abs(x) < 1e-8) return x / 2.0;
+        return std::sqrt(1.0 + x) - 1.0;
+    }
+
+    [[nodiscard]] Real cbrt(Real x) { return std::cbrt(x); }
+
+    // =============================================================
+    // ================= Exponential /Logarithmic ==================
+    // =============================================================
+
     [[nodiscard]] Real exp(Real x) {
         if (x > 700.0) return std::numeric_limits<Real>::infinity();
         if (x < -700.0) return 0.0;
@@ -151,10 +185,6 @@ namespace Functions {
         if (abs(x) < 1e-5) return x + 0.5*x*x; // Тейлор для маленьких x
         return std::expm1(x);
     }
-
-    // ===============================================
-    // ================= Logarithmic =================
-    // ===============================================
 
     struct LogBaseCache {
         Real base = NaN();
@@ -319,26 +349,6 @@ namespace Functions {
         return std::atanh(x);
     }
 
-    // ======================================================
-    // ====================== Hybrid ========================
-    // ======================================================
-
-    [[nodiscard]] Real x_pow_y(Real x, Real y) {
-        if (x == 0.0) return (y > 0.0) ? 0.0 : NaN(); // 0^y
-        if (x == 1.0 || y == 0.0) return 1.0;         // 1^y, x^0
-        if (y == 1.0) return x;                        // x^1
-        if (x > 0.0) return std::exp(y * std::log(x));
-        return NaN();
-    }
-
-    [[nodiscard]] Real sqrt1pm1(Real x) {
-        if (x < -1.0) return NaN();
-        if (abs(x) < 1e-8) return x / 2.0;
-        return std::sqrt(1.0 + x) - 1.0;
-    }
-
-    [[nodiscard]] Real heaviside(Real x) { return x < 0.0 ? 0.0 : 1.0; }
-
     // ===========================================
     // ================= Special =================
     // ===========================================
@@ -441,7 +451,7 @@ namespace Functions {
         return std::exp(-x * x / eps) * invSqrtPiEps;
     }
 
-    [[nodiscard]] Real geometric_sum(Real a, int N) noexcept {
+    [[nodiscard]] Real geometric_sum(Real a, int N) {
         if (N <= 0) return Real{0};
         if (a == Real{1}) return static_cast<Real>(N);
 
@@ -452,15 +462,6 @@ namespace Functions {
             term *= a;
         }
         return sum;
-    }
-
-    [[nodiscard]] Real algebraic_root(Real x, const VecReal& coefficients) {
-        Real poly = Real{0};
-        for (const Real& c : std::views::reverse(coefficients)) {
-            poly = poly * x + c;
-        }
-        if (poly < 0) return NaN();
-        return std::sqrt(poly);
     }
 
     // ====================================================

@@ -8,11 +8,9 @@
 class MathEngine {
 public:
     MathEngine() {
-        // Инициализация: создаём executor и привязываем функции
         pattern::bind_all(exec_);
     }
 
-    // Вариадический compute для скаляров и векторов
     template<typename... Args>
         ResultVariant compute(size_t id, Args&&... args) {
         auto pid = static_cast<PatternID>(id);
@@ -29,7 +27,7 @@ private:
     static ArgVariant toArgVariant(Real v)                        { return v; }
     static ArgVariant toArgVariant(int v)                         { return v; }
     static ArgVariant toArgVariant(const VecReal& v)             { return v; }
-    static ArgVariant toArgVariant(std::vector<Real> v)          { return v; } // initializer_list будет преобразован через vector
+    static ArgVariant toArgVariant(std::vector<Real> v)          { return v; }
     static ArgVariant toArgVariant(const RealPair& p)            { return p; }
     static ArgVariant toArgVariant(const Complex& c)             { return c; }
     static ArgVariant toArgVariant(const StabPolicy& p)          { return p; }

@@ -10,6 +10,14 @@
 
 namespace Functions {
 
+    // ===========================================
+    // ================= Sign ====================
+    // ===========================================
+
+    Real sign(Real x);
+    Real abs(Real x);
+    Real heaviside(Real x);
+
     // =============================================
     // ================= Algebraic =================
     // =============================================
@@ -21,24 +29,25 @@ namespace Functions {
     Real mod(Real x, Real y);
     Real polynomial(Real x, const VecReal& coefficients);
     Real rational(Real x, const VecReal& p, const VecReal& q);
-    Real sqrt(Real x);
-    Real cbrt(Real x);
-    Real sign(Real x);
-    Real abs(Real x);
 
-    // =======================================================
-    // ================= Power / Exponential =================
-    // =======================================================
+    // ================================================
+    // ================= Power / Root =================
+    // ================================================
 
     Real pow(Real x, Real alpha);
+    Real x_pow_y(Real x, Real y);
+    Real algebraic_root(Real x, const VecReal& coefficients);
+    Real sqrt(Real x);
+    Real sqrt1pm1(Real x);
+    Real cbrt(Real x);
+
+    // =============================================================
+    // ================= Exponential /Logarithmic ==================
+    // =============================================================
+
     Real exp(Real x);
     Real exp2(Real x);
     Real expm1_safe(Real x);
-
-    // ===============================================
-    // ================= Logarithmic =================
-    // ===============================================
-
     Real log2(Real x);
     Real log(Real x);
     Real log10(Real x);
@@ -76,14 +85,6 @@ namespace Functions {
     Real acosh(Real x);
     Real atanh(Real x);
 
-    // ======================================================
-    // ===================== Hybrid =========================
-    // ======================================================
-
-    Real x_pow_y(Real x, Real y);
-    Real sqrt1pm1(Real x);
-    Real heaviside(Real x);
-
     // ===========================================
     // ================= Special =================
     // ===========================================
@@ -112,8 +113,7 @@ namespace Functions {
     // ===============================================
 
     Real dirac_delta(Real x, Real eps = 1e-3);
-    Real geometric_sum(Real a, int N) noexcept;
-    Real algebraic_root(Real x, const VecReal& coefficients);
+    Real geometric_sum(Real a, int N);
 
     // ====================================================
     // ==================== Numerical =====================
