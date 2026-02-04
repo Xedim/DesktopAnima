@@ -1,9 +1,8 @@
 //PatternList.h
-#pragma once
-#include "math/common/Types.h"
+#include "../math/common/Types.h"
 
-X(Factorial,        factorial,                 "factorial",                  Interval{    0, INF },   Interval{     1,  INF },   PatternKind::Algebra)
-X(Binomial,         binomial,                  "binomial",                   Interval{    0, INF },   Interval{     0,  INF },   PatternKind::Algebra)
+X(Factorial,        factorial,                 "factorial",                  (Interval{    0, INF }),   (Interval{     1,  INF }),   PatternKind::Algebra)
+/*X(Binomial,         binomial,                  "binomial",                   Interval{    0, INF },   Interval{     0,  INF },   PatternKind::Algebra)
 X(Combination,      combination,               "combination",                Interval{    0, INF },   Interval{     0,  INF },   PatternKind::Algebra)
 X(Permutation,      permutation,               "permutation",                Interval{    0, INF },   Interval{     0,  INF },   PatternKind::Algebra)
 X(Mod,              mod,                       "mod",                        Interval{ -INF, INF },   Interval{     0,  INF },   PatternKind::Algebra)
@@ -141,14 +140,14 @@ X(StudentTPDF,      dist::pdf,                 "student_t_pdf",              Int
 X(StudentTCDF,      dist::cdf,                 "student_t_cdf",              Interval{ -INF, INF },   Interval{     0,    1 },   PatternKind::Distributional)
 X(StudentTQuantile, dist::quantile,            "student_t_quantile",         Interval{    0,   1 },   Interval{  -INF,  INF },   PatternKind::Distributional)
 X(StudentTLogLike,  dist::log_likelihood,      "student_t_log_likelihood",   Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Distributional)
-//X(ZTest,            z_test,                    "z_test",                     Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
-//X(TTest,            t_test,                    "t_test",                     Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
-//X(WelchTTest,       welch_t_test,              "welch_t_test",               Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
-//X(MannWhitneyU,     mann_whitney_u,            "mann_whitney_u",             Interval{ -INF, INF },   Interval{     0,  INF },   PatternKind::Statistical)
-//X(WilcoxonSignRank, wilcoxon_signed_rank,      "wilcoxon_signed_rank",       Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
-//X(KSTest,           ks_test,                   "ks_test",                    Interval{ -INF, INF },   Interval{     0,    1 },   PatternKind::Statistical)
-//X(ChiSquareTest,    chi_square_test,           "chi_square_test",            Interval{    0, INF },   Interval{     0,  INF },   PatternKind::Statistical)
-//X(AndersonDarling,  anderson_darling,          "anderson_darling",           Interval{ -INF, INF },   Interval{     0,  INF },   PatternKind::Statistical)
+X(ZTest,            z_test,                    "z_test",                     Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
+X(TTest,            t_test,                    "t_test",                     Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
+X(WelchTTest,       welch_t_test,              "welch_t_test",               Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
+X(MannWhitneyU,     mann_whitney_u,            "mann_whitney_u",             Interval{ -INF, INF },   Interval{     0,  INF },   PatternKind::Statistical)
+X(WilcoxonSignRank, wilcoxon_signed_rank,      "wilcoxon_signed_rank",       Interval{ -INF, INF },   Interval{  -INF,  INF },   PatternKind::Statistical)
+X(KSTest,           ks_test,                   "ks_test",                    Interval{ -INF, INF },   Interval{     0,    1 },   PatternKind::Statistical)
+X(ChiSquareTest,    chi_square_test,           "chi_square_test",            Interval{    0, INF },   Interval{     0,  INF },   PatternKind::Statistical)
+X(AndersonDarling,  anderson_darling,          "anderson_darling",           Interval{ -INF, INF },   Interval{     0,  INF },   PatternKind::Statistical)
 X(Entropy,          entropy,                   "entropy",                    Interval{    0,   1 },   Interval{     0,  INF },   PatternKind::Information)
 X(CrossEntropy,     cross_entropy,             "cross_entropy",              Interval{    0,   1 },   Interval{     0,  INF },   PatternKind::Information)
 X(KLDivergence,     kl_divergence,             "kl_divergence",              Interval{    0,   1 },   Interval{     0,  INF },   PatternKind::Information)
@@ -179,3 +178,4 @@ X(ModifiedZScore,   modified_z_score,          "modified_z_score",           Int
 X(GrubbsTest,       grubbs_test,               "grubbs_test",                Interval{ -INF, INF },   Interval{     0,    1 },   PatternKind::Outliers)
 X(ChauvenetCrit,    chauvenet_criterion,       "chauvenet_criterion",        Interval{ -INF, INF },   Interval{     0,    1 },   PatternKind::Outliers)
 X(IsOutlier,        is_outlier,                "is_outlier",                 Interval{ -INF, INF },   Interval{     0,    1 },   PatternKind::Outliers)
+*/

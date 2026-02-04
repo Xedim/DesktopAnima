@@ -64,6 +64,7 @@ add_executable(testME
         tests/Functions/testOutliers.cpp
         tests/Functions/testStatTests.cpp
         tests/Functions/uniTest.cpp
+        tests/testMathEngine.cpp
 )
 
 target_compile_definitions(DesktopScenes PRIVATE
