@@ -3,10 +3,18 @@
 #pragma once
 #include <complex>
 #include <limits>
+#include <random>
 #include "Types.h"
 
 
 namespace Utils {
+    using Function1D = std::function<Real(Real)>;
+    using Function2D = std::function<Real(Real, Real)>;
+
+    std::random_device inline rd;
+    std::mt19937 inline rng(rd());
+    std::uniform_real_distribution<Real> inline dist_real(-100.0, 100.0);
+    std::uniform_int_distribution<int> inline dist_int(0, 20);
 
     inline Real clamp01(Real x) {
         return std::clamp(x, Real{0}, Real{1});

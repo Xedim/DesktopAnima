@@ -491,6 +491,8 @@ namespace Functions {
     // ================= Fractals ===================
     // ==============================================
 
+    struct WeierState { Real sum; Real amp; Real freq; };
+
     [[nodiscard]] Real weierstrass(Real x, Real a, Real b, int N, StabPolicy policy)
     {
         if (a <= Constants::WEIERSTRASS_AMP_MIN || a >= Constants::WEIERSTRASS_AMP_MAX ||
@@ -537,6 +539,8 @@ namespace Functions {
             policy
         );
     }
+
+    struct CantorState { Real x; Real result; Real scale; };
 
     [[nodiscard]] Real cantor(Real x, int max_iter, StabPolicy policy)
     {

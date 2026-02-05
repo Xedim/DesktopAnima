@@ -3,6 +3,7 @@
 #include <cmath>
 #include "../../math/pattern/Functions.h"
 #include "../math/common/Types.h"
+#include "../math/common/Utils.h"
 
 using Real = double;
 using VecReal = std::vector<Real>;
@@ -44,7 +45,7 @@ TEST_P(DynamicTest, InvariantsHold) {
         std::uniform_real_distribution<Real> dist(-10.0, 10.0);
 
         for (int i = 0; i < 100; ++i) {
-            Real x = dist(rng);
+            Real x = dist(Utils::rng);
             Real v = fdesc.fn_real(x);
 
             if (std::string(fdesc.name) == "sqrt" && x < 0) {

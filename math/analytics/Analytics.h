@@ -6,6 +6,8 @@
 
 
 namespace Analytics {
+    using Function1D = std::function<Real(Real)>;
+    using Function2D = std::function<Real(Real, Real)>;
 
     // ---------------- Differential ----------------
 

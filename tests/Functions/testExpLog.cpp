@@ -6,12 +6,13 @@
 #include <functional>
 #include <random>
 #include "../../math/pattern/Functions.h"
+#include "../math/common/Utils.h"
 
 // ---------------- Random generator -----------------
 std::vector<Real> generate_random(Real min, Real max, int n=100) {
     std::vector<Real> vals(n);
     std::uniform_real_distribution<Real> dist(min, max);
-    for (auto &v : vals) v = dist(rng);
+    for (auto &v : vals) v = dist(Utils::rng);
     return vals;
 }
 

@@ -65,6 +65,7 @@ add_executable(testME
         tests/Functions/testStatTests.cpp
         tests/Functions/uniTest.cpp
         tests/testMathEngine.cpp
+        tests/testTypes.cpp
 )
 
 target_compile_definitions(DesktopScenes PRIVATE

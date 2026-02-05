@@ -8,6 +8,12 @@ namespace Analytics {
     inline constexpr Real LO = Constants::NEG_LIMIT;
     inline constexpr Real HI = Constants::POS_LIMIT;
 
+    using Function1D = std::function<Real(Real)>;
+    using Function2D = std::function<Real(Real, Real)>;
+
+    using PDF = std::function<Real(Real)>;
+    using CDF = std::function<Real(Real)>;
+
     // ---------------- Differential ----------------
     [[nodiscard]] Real derivative(const Function1D& f, Real x, Real h, StabPolicy policy) {
         if (h <= Real{0}) return NaN();

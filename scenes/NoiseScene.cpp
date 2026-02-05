@@ -11,7 +11,6 @@ struct params {
     float speed;
     float intensity;
 
-    // Анимация для цвета и интенсивности
     struct {
         float r_level, r_amplitude, r_frequency, r_phase;
         float g_level, g_amplitude, g_frequency, g_phase;
