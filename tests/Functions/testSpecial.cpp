@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
-#include "../../math/pattern/Functions.h"
-#include "../../math/common/Types.h"
+#include "../../math/functions/Functions.h"
+#include "../../math/types/Types.h"
 #include <boost/math/special_functions/lambert_w.hpp> // used by Functions::lambert_w
 
 // ---------------- erf / erfc ----------------

@@ -2,10 +2,9 @@
 
 #pragma once
 #include <vector>
-#include "../common/Types.h"
-#include "../common/Constants.h"
-#include "../common/Utils.h"
-#include <boost/math/distributions/gamma.hpp>
+#include "../types/Types.h"
+#include "../helpers/Constants.h"
+#include "../helpers/Utils.h"
 #include "cmath"
 
 namespace Functions {
@@ -42,7 +41,7 @@ namespace Functions {
     Real cbrt(Real x);
 
     // =============================================================
-    // ================= Exponential /Logarithmic ==================
+    // ================= Exponential / Logarithmic =================
     // =============================================================
 
     Real exp(Real x);
@@ -256,182 +255,45 @@ namespace Functions {
 
     namespace dist {
 
-        struct Normal {
-            Real mu;
-            Real sigma;
+        Real pdf(const DistNormal& d, Real x);
+        Real cdf(const DistNormal& d, Real x);
+        Real quantile(const DistNormal& d, Real p);
+        Real log_likelihood(const DistNormal& d, const VecReal& data);
 
-            // --- cached ---
-            Real inv_sigma;
-            Real inv_sigma_sqrt2;
-            Real inv_sigma_sqrt2pi;
-            Real log_norm;
+        Real pdf(const DistLogNormal& d, Real x);
+        Real cdf(const DistLogNormal& d, Real x);
+        Real quantile(const DistLogNormal& d, Real p);
+        Real log_likelihood(const DistLogNormal& d, const VecReal& data);
 
-            explicit Normal(Real mu_, Real sigma_)
-                : mu(mu_), sigma(sigma_) {
+        Real pdf(const DistExp& d, Real x);
+        Real cdf(const DistExp& d, Real x);
+        Real quantile(const DistExp& d, Real p);
+        Real log_likelihood(const DistExp& d, const VecReal& data);
 
-                if (sigma_ > 0) {
-                    inv_sigma = Real{1} / sigma_;
-                    inv_sigma_sqrt2 = inv_sigma / Constants::SQRT2;
-                    inv_sigma_sqrt2pi = inv_sigma / Constants::SQRT_2PI;
-                    log_norm = std::log(sigma_ * Constants::SQRT_2PI);
-                } else {
-                    inv_sigma = inv_sigma_sqrt2 = inv_sigma_sqrt2pi = log_norm = NaN();
-                }
-            }
-        };
+        Real pdf(const DistGamma& d, Real x);
+        Real cdf(const DistGamma& d, Real x);
+        Real quantile(const DistGamma& d, Real p);
+        Real log_likelihood(const DistGamma& d, const VecReal& data);
 
-        Real pdf(const Normal& d, Real x);
-        Real cdf(const Normal& d, Real x);
-        Real quantile(const Normal& d, Real p);
-        Real log_likelihood(const Normal& d, const VecReal& data);
+        Real pdf(const DistBeta& d, Real x);
+        Real cdf(const DistBeta& d, Real x);
+        Real quantile(const DistBeta& d, Real p);
+        Real log_likelihood(const DistBeta& d, const VecReal& data);
 
-        struct LogNormal {
-            Real mu;
-            Real sigma;
+        Real pdf(const DistWeibull& d, Real x);
+        Real cdf(const DistWeibull& d, Real x);
+        Real quantile(const DistWeibull& d, Real p);
+        Real log_likelihood(const DistWeibull& d, const VecReal& data);
 
-            // cached
-            Real inv_sigma;
-            Real log_norm;
+        Real pdf(const DistCauchy& d, Real x);
+        Real cdf(const DistCauchy& d, Real x);
+        Real quantile(const DistCauchy& d, Real p);
+        Real log_likelihood(const DistCauchy& d, const VecReal& data);
 
-            explicit LogNormal(Real mu_, Real sigma_)
-                : mu(mu_), sigma(sigma_) {
-
-                if (sigma_ > 0) {
-                    inv_sigma = Real{1} / sigma_;
-                    log_norm = std::log(sigma_ * Constants::SQRT_2PI);
-                } else {
-                    inv_sigma = log_norm = NaN();
-                }
-            }
-        };
-
-        Real pdf(const LogNormal& d, Real x);
-        Real cdf(const LogNormal& d, Real x);
-        Real quantile(const LogNormal& d, Real p);
-        Real log_likelihood(const LogNormal& d, const VecReal& data);
-
-        struct Exponential {
-            Real lambda;
-
-            explicit Exponential(Real lambda_)
-                : lambda(lambda_) {}
-        };
-
-        Real pdf(const Exponential& d, Real x);
-        Real cdf(const Exponential& d, Real x);
-        Real quantile(const Exponential& d, Real p);
-        Real log_likelihood(const Exponential& d, const VecReal& data);
-
-        struct Gamma {
-            Real k;       // shape
-            Real theta;   // scale
-
-            // cached
-            Real inv_theta;
-            Real log_theta;
-            Real log_gamma_k;
-
-            explicit Gamma(Real k_, Real theta_)
-                : k(k_), theta(theta_) {
-
-                if (k_ > 0 && theta_ > 0) {
-                    inv_theta = Real{1} / theta_;
-                    log_theta = std::log(theta_);
-                    log_gamma_k = boost::math::lgamma(k_);
-                } else {
-                    inv_theta = log_theta = log_gamma_k = NaN();
-                }
-            }
-        };
-
-        Real pdf(const Gamma& d, Real x);
-        Real cdf(const Gamma& d, Real x);
-        Real quantile(const Gamma& d, Real p);
-        Real log_likelihood(const Gamma& d, const VecReal& data);
-
-        struct Beta {
-            Real alpha;
-            Real beta;
-
-            // cached
-            Real log_beta_fn;   // log B(alpha, beta)
-
-            explicit Beta(Real alpha_, Real beta_)
-                : alpha(alpha_), beta(beta_) {
-
-                if (alpha_ > 0 && beta_ > 0) {
-                    log_beta_fn =
-                        boost::math::lgamma(alpha_)
-                      + boost::math::lgamma(beta_)
-                      - boost::math::lgamma(alpha_ + beta_);
-                } else {
-                    log_beta_fn = NaN();
-                }
-            }
-        };
-
-        Real pdf(const Beta& d, Real x);
-        Real cdf(const Beta& d, Real x);
-        Real quantile(const Beta& d, Real p);
-        Real log_likelihood(const Beta& d, const VecReal& data);
-
-        struct Weibull {
-            Real k;
-            Real lambda;
-
-            Real inv_lambda;
-            Real log_lambda;
-
-            explicit Weibull(Real k_, Real lambda_)
-                : k(k_), lambda(lambda_) {
-
-                inv_lambda = Real{1} / lambda_;
-                log_lambda = std::log(lambda_);
-            }
-        };
-
-        Real pdf(const Weibull& d, Real x);
-        Real cdf(const Weibull& d, Real x);
-        Real quantile(const Weibull& d, Real p);
-        Real log_likelihood(const Weibull& d, const VecReal& data);
-
-        struct Cauchy {
-            Real x0;
-            Real gamma;
-
-            Real inv_gamma;
-            Real log_norm;
-
-            explicit Cauchy(Real x0_, Real gamma_)
-                : x0(x0_), gamma(gamma_) {
-
-                inv_gamma = Real{1} / gamma_;
-                log_norm = std::log(Constants::PI * gamma_);
-            }
-        };
-
-        Real pdf(const Cauchy& d, Real x);
-        Real cdf(const Cauchy& d, Real x);
-        Real quantile(const Cauchy& d, Real p);
-        Real log_likelihood(const Cauchy& d, const VecReal& data);
-
-        struct StudentT {
-            Real nu;
-
-            Real log_norm;
-
-            explicit StudentT(Real nu_) : nu(nu_) {
-                log_norm =
-                    boost::math::lgamma((nu + 1) / 2) -
-                    boost::math::lgamma(nu / 2) -
-                    Real{0.5} * std::log(nu * Constants::PI);
-            }
-        };
-
-        Real pdf(const StudentT& d, Real x);
-        Real cdf(const StudentT& d, Real x);
-        Real quantile(const StudentT& d, Real p);
-        Real log_likelihood(const StudentT& d, const VecReal& data);
+        Real pdf(const DistStudentT& d, Real x);
+        Real cdf(const DistStudentT& d, Real x);
+        Real quantile(const DistStudentT& d, Real p);
+        Real log_likelihood(const DistStudentT& d, const VecReal& data);
 
     } // namespace dist
 

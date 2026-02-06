@@ -5,8 +5,8 @@
 #include <string>
 #include <functional>
 #include <random>
-#include "../../math/pattern/Functions.h"
-#include "../math/common/Utils.h"
+#include "../../math/functions/Functions.h"
+#include "../../math/helpers/Utils.h"
 
 // ---------------- Random generator -----------------
 std::vector<Real> generate_random(Real min, Real max, int n=100) {

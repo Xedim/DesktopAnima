@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <vector>
-#include "../../math/pattern/Functions.h"
-#include "../../math/common/Types.h"
+#include "../../math/functions/Functions.h"
+#include "../../math/types/Types.h"
 
 // ---------------- dirac_delta ----------------
 struct DiracTestCase { Real x; Real eps; Real expected; bool expect_nan = false; };

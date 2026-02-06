@@ -1,9 +1,9 @@
 // testAlgebra.cpp
 #include <gtest/gtest.h>
 #include <cmath>
-#include "../../math/pattern/Functions.h"
-#include "../math/common/Types.h"
-#include "../math/common/Utils.h"
+#include "../../math/functions/Functions.h"
+#include "../../math/types/Types.h"
+#include "../../math/helpers/Utils.h"
 
 using Real = double;
 using VecReal = std::vector<Real>;

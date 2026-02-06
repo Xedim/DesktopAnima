@@ -1,5 +1,5 @@
-#include "../math/pattern/Functions.h"
-#include "../math/common/Types.h"
+#include "../../math/functions/Functions.h"
+#include "../../math/types/Types.h"
 #include <gtest/gtest.h>
 #include <vector>
 #include <algorithm>

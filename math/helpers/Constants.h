@@ -1,6 +1,6 @@
 //Constants.h
 #pragma once
-#include "Types.h"
+#include "../types/Types.h"
 
 namespace Constants {
 

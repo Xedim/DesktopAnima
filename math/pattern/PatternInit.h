@@ -1,6 +1,6 @@
 #pragma once
-#include "PatternExecutor.h"
-#include "Functions.h"
+#include "../executor/PatternExecutor.h"
+#include "../functions/Functions.h"
 #include <tuple>
 #include <stdexcept>
 #include <type_traits>

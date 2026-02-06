@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../math/pattern/MathEngine.h"
+#include "../math/api/MathEngine.h"
 
 TEST(MathEngineSmoke, FactorialRawCall) {
     MathEngine engine;

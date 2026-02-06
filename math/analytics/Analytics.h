@@ -1,8 +1,8 @@
 //Analytics.h
 
 #pragma once
-#include "../common/Constants.h"
-#include "../common/Types.h"
+#include "../helpers/Constants.h"
+#include "../types/Types.h"
 
 
 namespace Analytics {

@@ -23,17 +23,17 @@ add_executable(DesktopScenes
 )
 
 add_library(MathCore
-        math/common/Types.h
-        math/common/Constants.h
-        math/common/Utils.h
+        math/types/Types.h
+        math/helpers/Constants.h
+        math/helpers/Utils.h
 
-        math/pattern/MathEngine.h
+        math/api/MathEngine.h
         math/pattern/PatternIdentity.h
-        math/pattern/PatternExecutor.h
+        math/executor/PatternExecutor.h
         math/pattern/PatternList.h
         math/pattern/PatternInit.h
-        math/pattern/Functions.h
-        math/pattern/Functions.cpp
+        math/functions/Functions.h
+        math/functions/Functions.cpp
         math/analytics/Analytics.h
         math/analytics/Analytics.cpp
 )

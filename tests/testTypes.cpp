@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../math/common/Types.h"
+#include "../math/types/Types.h"
 #include <cmath>
 
 // -------------------------

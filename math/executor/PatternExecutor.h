@@ -1,7 +1,7 @@
 // PatternExecutor.h
 #pragma once
-#include "../common/Types.h"
-#include "PatternIdentity.h"
+#include "../types/Types.h"
+#include "../pattern/PatternIdentity.h"
 #include <array>
 #include <variant>
 #include <stdexcept>

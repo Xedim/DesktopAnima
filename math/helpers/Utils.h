@@ -4,7 +4,8 @@
 #include <complex>
 #include <limits>
 #include <random>
-#include "Types.h"
+#include <functional>
+#include "../types/Types.h"
 
 
 namespace Utils {

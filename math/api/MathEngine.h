@@ -1,9 +1,9 @@
 //MathEngine.h
 #pragma once
-#include "../common/Types.h"
-#include "PatternIdentity.h"
-#include "PatternExecutor.h"
-#include "PatternInit.h"
+#include "../types/Types.h"
+#include "../pattern/PatternIdentity.h"
+#include "../executor/PatternExecutor.h"
+#include "../pattern/PatternInit.h"
 
 class MathEngine {
 public:

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
-#include "../../math/pattern/Functions.h"
-#include "../../math/common/Constants.h"
+#include "../../math/functions/Functions.h"
+#include "../../math/helpers/Constants.h"
 
 TEST(TrigonometricDynamic, BasicValues) {
     // sin/cos

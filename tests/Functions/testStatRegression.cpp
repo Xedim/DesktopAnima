@@ -1,6 +1,6 @@
 // testStatRegression.cpp
 #include <gtest/gtest.h>
-#include "../../math/pattern/Functions.h"
+#include "../../math/functions/Functions.h"
 
 using namespace Functions;
 

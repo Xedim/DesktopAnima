@@ -1,9 +1,8 @@
 //Functions.cpp
 
 #include "Functions.h"
-
-#include "../common/Utils.h"
-#include "../common/Constants.h"
+#include "../helpers/Utils.h"
+#include "../helpers/Constants.h"
 #include <boost/math/special_functions/bessel.hpp>
 #include <boost/math/special_functions/legendre.hpp>
 #include <boost/math/special_functions/lambert_w.hpp>
@@ -548,7 +547,7 @@ namespace Functions {
             max_iter <= Constants::CANTOR_ITER_MIN)
             return NaN();
 
-        auto f = [](const CantorState& s) {
+        auto f = [](const CantorState& s) -> CantorState {
             if (s.x < Constants::CANTOR_LEFT) {
                 return CantorState{
                     s.x * Constants::CANTOR_SCALE,
@@ -608,7 +607,7 @@ namespace Functions {
         if (x < Constants::TENT_X_MIN || x > Constants::TENT_X_MAX)
             return NaN();
 
-        auto f = [](Real x) {
+        auto f = [](Real x) -> Real {
             return (x < Constants::TENT_PEAK)
                  ? Constants::TENT_SLOPE * x
                  : Constants::TENT_SLOPE * (Real{1} - x);
@@ -1152,23 +1151,23 @@ namespace Functions {
 
     namespace dist {
 
-        [[nodiscard]] Real pdf(const Normal& d, Real x) {
+        [[nodiscard]] Real pdf(const DistNormal& d, Real x) {
             const Real z = (x - d.mu) * d.inv_sigma;
             return std::exp(-Real{0.5} * z * z) * d.inv_sigma_sqrt2pi;
         }
 
-        [[nodiscard]] Real cdf(const Normal& d, Real x) {
+        [[nodiscard]] Real cdf(const DistNormal& d, Real x) {
             boost::math::normal_distribution n(d.mu, d.sigma);
             return boost::math::cdf(n, x);
         }
 
-        [[nodiscard]] Real quantile(const Normal& d, Real p) {
+        [[nodiscard]] Real quantile(const DistNormal& d, Real p) {
             if (d.sigma <= 0) return NaN();
             boost::math::normal_distribution n(d.mu, d.sigma);
             return boost::math::quantile(n, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const Normal& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistNormal& d, const VecReal& data) {
             if (data.empty()) return NaN();
 
             Real acc = 0;
@@ -1184,26 +1183,26 @@ namespace Functions {
             return -Real{0.5} * acc - n * log_norm;
         }
 
-        [[nodiscard]] Real pdf(const LogNormal& d, Real x) {
+        [[nodiscard]] Real pdf(const DistLogNormal& d, Real x) {
             if (x <= 0) return 0;
             Real lx = std::log(x);
             Real z = (lx - d.mu) * d.inv_sigma;
             return std::exp(-Real{0.5} * z * z) / (x * d.sigma * Constants::SQRT_2PI);
         }
 
-        [[nodiscard]] Real cdf(const LogNormal& d, Real x) {
+        [[nodiscard]] Real cdf(const DistLogNormal& d, Real x) {
             if (x <= 0) return Real{0};
             boost::math::lognormal_distribution ln(d.mu, d.sigma);
             return boost::math::cdf(ln, x);
         }
 
-        [[nodiscard]] Real quantile(const LogNormal& d, Real p) {
+        [[nodiscard]] Real quantile(const DistLogNormal& d, Real p) {
             if (d.sigma <= 0) return NaN();
             boost::math::lognormal_distribution ln(d.mu, d.sigma);
             return boost::math::quantile(ln, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const LogNormal& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistLogNormal& d, const VecReal& data) {
             if (data.empty()) return NaN();
             Real acc = 0;
             Real sq = 0;
@@ -1221,23 +1220,23 @@ namespace Functions {
                    - acc;
         }
 
-        [[nodiscard]] Real pdf(const Exponential& d, Real x) {
+        [[nodiscard]] Real pdf(const DistExp& d, Real x) {
             return (x < 0 || d.lambda <= 0) ? 0
                    : d.lambda * std::exp(-d.lambda * x);
         }
 
-        [[nodiscard]] Real cdf(const Exponential& d, Real x) {
+        [[nodiscard]] Real cdf(const DistExp& d, Real x) {
             return (x < 0 || d.lambda <= 0) ? 0
                    : Real{1} - std::exp(-d.lambda * x);
         }
 
-        [[nodiscard]] Real quantile(const Exponential& d, Real p) {
+        [[nodiscard]] Real quantile(const DistExp& d, Real p) {
             if (d.lambda <= 0) return NaN();
             boost::math::exponential_distribution e(d.lambda);
             return boost::math::quantile(e, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const Exponential& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistExp& d, const VecReal& data) {
             if (d.lambda <= 0 || data.empty()) return NaN();
 
             Real sum = 0;
@@ -1250,7 +1249,7 @@ namespace Functions {
                    - d.lambda * sum;
         }
 
-        [[nodiscard]] Real pdf(const Gamma& d, Real x) {
+        [[nodiscard]] Real pdf(const DistGamma& d, Real x) {
             if (x <= 0 || d.k <= 0 || d.theta <= 0) return 0;
 
             return std::exp(
@@ -1261,19 +1260,19 @@ namespace Functions {
             );
         }
 
-        [[nodiscard]] Real cdf(const Gamma& d, Real x) {
+        [[nodiscard]] Real cdf(const DistGamma& d, Real x) {
             if (x <= 0 || d.k <= 0 || d.theta <= 0) return 0;
             boost::math::gamma_distribution g(d.k, d.theta);
             return boost::math::cdf(g, x);
         }
 
-        [[nodiscard]] Real quantile(const Gamma& d, Real p) {
+        [[nodiscard]] Real quantile(const DistGamma& d, Real p) {
             if (d.k <= 0 || d.theta <= 0) return NaN();
             boost::math::gamma_distribution g(d.k, d.theta);
             return boost::math::quantile(g, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const Gamma& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistGamma& d, const VecReal& data) {
             if (d.k <= 0 || d.theta <= 0 || data.empty()) return NaN();
 
             Real sum_log = 0;
@@ -1292,7 +1291,7 @@ namespace Functions {
                  - n * (d.k * d.log_theta + d.log_gamma_k);
         }
 
-        [[nodiscard]] Real pdf(const Beta& d, Real x) {
+        [[nodiscard]] Real pdf(const DistBeta& d, Real x) {
             if (x <= 0 || x >= 1 || d.alpha <= 0 || d.beta <= 0)
                 return 0;
 
@@ -1303,7 +1302,7 @@ namespace Functions {
             );
         }
 
-        [[nodiscard]] Real cdf(const Beta& d, Real x) {
+        [[nodiscard]] Real cdf(const DistBeta& d, Real x) {
             if (x <= 0) return 0;
             if (x >= 1) return 1;
             if (d.alpha <= 0 || d.beta <= 0) return NaN();
@@ -1311,7 +1310,7 @@ namespace Functions {
             return boost::math::cdf(b, x);
         }
 
-        [[nodiscard]] Real quantile(const Beta& d, Real p) {
+        [[nodiscard]] Real quantile(const DistBeta& d, Real p) {
             if (d.alpha <= 0 || d.beta <= 0)
                 return NaN();
 
@@ -1319,7 +1318,7 @@ namespace Functions {
             return boost::math::quantile(b, Utils::clampProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const Beta& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistBeta& d, const VecReal& data) {
             if (d.alpha <= 0 || d.beta <= 0 || data.empty())
                 return NaN();
 
@@ -1339,7 +1338,7 @@ namespace Functions {
                  - n * d.log_beta_fn;
         }
 
-        [[nodiscard]] Real pdf(const Weibull& d, Real x) {
+        [[nodiscard]] Real pdf(const DistWeibull& d, Real x) {
             if (x < 0) return 0;
             Real t = x * d.inv_lambda;
             return (d.k / d.lambda) *
@@ -1347,17 +1346,17 @@ namespace Functions {
                    std::exp(-std::pow(t, d.k));
         }
 
-        [[nodiscard]] Real cdf(const Weibull& d, Real x) {
+        [[nodiscard]] Real cdf(const DistWeibull& d, Real x) {
             if (x < 0) return 0;
             return Real{1} - std::exp(-std::pow(x * d.inv_lambda, d.k));
         }
 
-        [[nodiscard]] Real quantile(const Weibull& d, Real p) {
+        [[nodiscard]] Real quantile(const DistWeibull& d, Real p) {
             boost::math::weibull_distribution w(d.k, d.lambda);
             return boost::math::quantile(w, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const Weibull& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistWeibull& d, const VecReal& data) {
             if (data.empty()) return NaN();
             Real sum_log = 0;
             Real sum_pow = 0;
@@ -1374,23 +1373,23 @@ namespace Functions {
                    - sum_pow;
         }
 
-        [[nodiscard]] Real pdf(const Cauchy& d, Real x) {
+        [[nodiscard]] Real pdf(const DistCauchy& d, Real x) {
             Real z = (x - d.x0) * d.inv_gamma;
             return Real{1} / (Constants::PI * d.gamma * (Real{1} + z * z));
         }
 
-        [[nodiscard]] Real cdf(const Cauchy& d, Real x) {
+        [[nodiscard]] Real cdf(const DistCauchy& d, Real x) {
             boost::math::cauchy_distribution c(d.x0, d.gamma);
             return boost::math::cdf(c, x);
         }
 
-        [[nodiscard]] Real quantile(const Cauchy& d, Real p) {
+        [[nodiscard]] Real quantile(const DistCauchy& d, Real p) {
             if (p <= 0 || p >= 1) return NaN();
             boost::math::cauchy_distribution c(d.x0, d.gamma);
             return boost::math::quantile(c, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const Cauchy& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistCauchy& d, const VecReal& data) {
             if (data.empty()) return NaN();
             Real acc = 0;
             for (Real x : data) {
@@ -1400,24 +1399,24 @@ namespace Functions {
             return -static_cast<Real>(data.size()) * d.log_norm - acc;
         }
 
-        [[nodiscard]] Real pdf(const StudentT& d, Real x) {
+        [[nodiscard]] Real pdf(const DistStudentT& d, Real x) {
             Real t = Real{1} + (x * x) / d.nu;
             return std::exp(d.log_norm) * std::pow(t, -(d.nu + 1) / 2);
         }
 
-        [[nodiscard]] Real cdf(const StudentT& d, Real x) {
+        [[nodiscard]] Real cdf(const DistStudentT& d, Real x) {
             if (d.nu <= 0) return NaN();
             boost::math::students_t_distribution t(d.nu);
             return boost::math::cdf(t, x);
         }
 
-        [[nodiscard]] Real quantile(const StudentT& d, Real p) {
+        [[nodiscard]] Real quantile(const DistStudentT& d, Real p) {
             if (d.nu <= 0) return NaN();
             boost::math::students_t_distribution<Real> t(d.nu);
             return boost::math::quantile(t, Utils::safeProb(p));
         }
 
-        [[nodiscard]] Real log_likelihood(const StudentT& d, const VecReal& data) {
+        [[nodiscard]] Real log_likelihood(const DistStudentT& d, const VecReal& data) {
             if (data.empty()) return NaN();
             Real acc = 0;
             for (Real x : data)
@@ -2052,7 +2051,7 @@ namespace Functions {
         const Real G = max_dev / stddev;
 
         const Real df = static_cast<Real>(n - 2);
-        dist::StudentT t_dist{ df };
+        DistStudentT t_dist{ df };
 
         const Real p = Real{1} - alpha / (Real{2} * static_cast<Real>(n));
         const Real t = dist::quantile(t_dist, p);
